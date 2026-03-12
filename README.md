@@ -1,44 +1,48 @@
-# OpenCloser — AI-Powered Sales Development Representative
+# OpenCloser — Your AI Sales Team, On Your Desktop
 
 <div align="center">
 
-![OpenCloser](https://img.shields.io/badge/OpenCloser-AI%20SDR-6366f1?style=for-the-badge&logo=robot&logoColor=white)
+![OpenCloser](https://img.shields.io/badge/OpenCloser-AI%20Sales%20Team-6366f1?style=for-the-badge&logo=robot&logoColor=white)
 ![Tauri](https://img.shields.io/badge/Tauri-2.0-FFC131?style=for-the-badge&logo=tauri&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 ![Rust](https://img.shields.io/badge/Rust-Backend-000000?style=for-the-badge&logo=rust&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge)
 
-**The open-source AI sales agent that lives on your desktop.**  
-Autonomous lead generation, intelligent cold calling, and real-time objection handling — all running locally on your machine.
+**An entire AI-powered sales team that lives on your desktop.**  
+From strategy to close — ICP generation, autonomous lead hunting, AI cold calling, real-time objection handling, post-call coaching, and pipeline analytics. All local. All yours.
 
 </div>
 
 ---
 
-## ✨ Features
+## ✨ Your AI Sales Team
 
-### 🎯 Intelligent Lead Generation
-- AI-powered ICP (Ideal Customer Profile) generation using SPIN & Challenger sales frameworks
+### 🧠 AI Sales Strategist
+- Generates your Ideal Customer Profile (ICP) using SPIN & Challenger frameworks  
+- Asks the right questions during onboarding to deeply understand your market
+- Builds targeted outreach strategies automatically
+
+### 🔍 AI Lead Researcher
 - Autonomous lead hunting with scoring and qualification
 - Full local-first CRM with Kanban pipeline management
+- Smart lead scoring and prioritization
 
-### 📞 AI-Powered Calling
+### 📞 AI Caller (SDR)
 - Real-time AI voice agent powered by Google Gemini
 - Virtual audio bridge for phone integration (Windows Phone Link / Mac Continuity)
 - Live transcription and conversation intelligence
 - Power dialing mode for high-volume outreach
 
-### 🧠 Smart Sales Intelligence  
-- Post-call AI debrief with sentiment analysis
-- Objection sparring trainer — practice handling tough objections before real calls
-- Call analytics dashboard with conversion metrics
-- AI-generated follow-up emails
+### 🎯 AI Sales Coach
+- Objection sparring trainer — practice handling tough objections with an AI prospect before real calls
+- Difficulty levels from Rookie to Elite
+- Real-time scoring and feedback on your rebuttals
 
-### 🎨 Premium Desktop Experience
-- Native desktop app via Tauri 2.0 — fast, secure, lightweight
-- Awwwards-level glassmorphic UI with micro-animations
-- Fully customizable AI persona (voice, tone, personality, pacing)
-- Dark-mode-first design with premium aesthetics
+### 📊 AI Sales Manager
+- Post-call AI debrief with sentiment analysis and key insights
+- AI-generated follow-up emails
+- Call analytics dashboard with conversion metrics and outcome tracking
+- Pipeline intelligence and forecasting
 
 ---
 
