@@ -15,6 +15,31 @@ From strategy to close — ICP generation, autonomous lead hunting, AI cold call
 
 ---
 
+## 💡 Why OpenCloser?
+
+Most "AI sales tools" give you a chatbot and call it a day. OpenCloser gives you **an entire autonomous sales team** — from strategy to close — running natively on your desktop. No monthly SaaS fees. No data leaving your machine. No vendor lock-in.
+
+### The Old Way vs. OpenCloser
+
+| | Traditional Sales Team | OpenCloser |
+|---|---|---|
+| **Strategy** | Hire a consultant ($5K+/mo) | AI Strategist generates ICP using SPIN & Challenger in minutes |
+| **Research** | SDR manually Googles leads (hours) | AI Researcher hunts, scores & qualifies leads automatically |
+| **Cold Calling** | SDR dials 50 calls/day, burns out | AI Caller dials with perfect pitch, never tired, never nervous |
+| **Coaching** | Manager listens to call recordings (time-intensive) | AI Coach gives instant post-call analysis with actionable feedback |
+| **Training** | Roleplay sessions (awkward, infrequent) | AI Sparring Partner available 24/7, adjustable difficulty |
+| **Analytics** | Spreadsheets and gut feelings | Real-time dashboards, sentiment analysis, conversion tracking |
+| **Cost** | $15K–50K+/mo in salaries | **Free. Open source.** |
+
+### 🎯 Built For
+
+- **Solo founders** who need to sell but can't afford a sales team
+- **Early-stage startups** that want enterprise-level sales ops from day one
+- **Sales teams** looking to augment human reps with AI intelligence
+- **Developers** who want to build on top of an open sales AI framework
+
+---
+
 ## ✨ Your AI Sales Team
 
 ### 🧠 AI Sales Strategist

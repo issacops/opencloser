@@ -242,8 +242,8 @@ Return JSON with:
           <Swords className="w-6 h-6 text-red-400" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Objection Sparring</h1>
-          <p className="text-gray-500 text-sm">Practice handling tough objections before real calls.</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">AI Sales Coach</h1>
+          <p className="text-gray-500 text-sm">Your personal trainer for handling tough objections before real calls.</p>
         </div>
       </div>
 

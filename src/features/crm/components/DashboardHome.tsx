@@ -70,13 +70,13 @@ export function DashboardHome({ leads, callLogs, onViewLead, onDial, onNavigate 
       <div className="mb-10 animate-fade-in flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight">
-            <span className="gradient-text">Command</span> <span className="text-white">Center</span>
+            <span className="gradient-text">Team</span> <span className="text-white">HQ</span>
           </h1>
-          <p className="text-gray-400 mt-2 text-sm font-medium tracking-wide">Strategic pipeline intelligence and execution telemetry.</p>
+          <p className="text-gray-400 mt-2 text-sm font-medium tracking-wide">Your AI sales team at a glance — pipeline, performance, and team status.</p>
         </div>
         <div className="hidden sm:flex items-center gap-3">
            <span className="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
-             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div> Dialing Engine Active
+             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div> All Systems Online
            </span>
         </div>
       </div>
@@ -118,6 +118,29 @@ export function DashboardHome({ leads, callLogs, onViewLead, onDial, onNavigate 
           <div className="text-4xl font-black text-white tabular-nums tracking-tight relative z-10">{formatDuration(avgDuration)}</div>
           <div className="text-xs text-gray-500 mt-2 font-medium relative z-10">duration per dial</div>
         </div>
+      </div>
+
+      {/* AI Team Quick Access */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10 stagger-children">
+        {[
+          { role: "Strategist", desc: "ICP & Frameworks", icon: "🧠", color: "purple", status: "Ready", page: "persona" },
+          { role: "Researcher", desc: "Lead Hunting", icon: "🔍", color: "blue", status: `${leads.length} leads`, page: "hunter" },
+          { role: "Caller", desc: "Voice Agent", icon: "📞", color: "emerald", status: `${callLogs.length} calls`, page: "dashboard" },
+          { role: "Coach", desc: "Objection Training", icon: "🎯", color: "amber", status: "Awaiting", page: "trainer" },
+        ].map(member => (
+          <button
+            key={member.role}
+            onClick={() => onNavigate(member.page)}
+            className="glass-card rounded-2xl p-5 text-left transition-all duration-300 group cursor-pointer hover:-translate-y-1 hover:shadow-xl hover:border-white/[0.12]"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-2xl">{member.icon}</span>
+              <span className="text-[10px] font-mono text-gray-400 bg-white/5 px-2 py-1 rounded-lg border border-white/10 uppercase tracking-wider">{member.status}</span>
+            </div>
+            <div className="text-sm font-bold text-white group-hover:text-white/90">{member.role}</div>
+            <div className="text-[12px] text-gray-500 mt-1 font-medium">{member.desc}</div>
+          </button>
+        ))}
       </div>
 
       {/* Main Grid */}

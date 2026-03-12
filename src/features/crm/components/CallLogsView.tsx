@@ -69,7 +69,7 @@ export function CallLogsView() {
             Call Intelligence Center
           </h2>
           <p className="text-gray-400 text-sm mt-1.5 font-medium">
-            Aggregated metric visualization and deep-dive acoustic transcripts.
+            Your AI Sales Manager's performance report — metrics, transcripts, and outcomes.
           </p>
         </div>
       </div>

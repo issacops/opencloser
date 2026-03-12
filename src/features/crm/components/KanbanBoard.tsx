@@ -250,14 +250,14 @@ export function KanbanBoard() {
         {(appState === "home" || appState === "dashboard" || appState === "hunter" || appState === "call_logs" || appState === "settings" || appState === "persona" || appState === "lead_detail") && (
           <aside className="w-60 border-r border-white/[0.06] bg-[#0a0a0a] p-3 flex flex-col gap-0.5">
             <div className="text-[10px] font-mono text-gray-600 uppercase tracking-[0.15em] mb-2 mt-1 px-3">
-              Navigation
+              Operations
             </div>
             <button
               onClick={() => setAppState("home")}
               className={`sidebar-item ${appState === "home" ? "active" : ""}`}
             >
               <Home className="w-4 h-4" />
-              Home
+              HQ
             </button>
             <button
               onClick={() => setAppState("dashboard")}
@@ -267,36 +267,36 @@ export function KanbanBoard() {
               Pipeline
             </button>
             <button
-              onClick={() => setAppState("hunter")}
-              className={`sidebar-item ${appState === "hunter" ? "active" : ""}`}
-            >
-              <Target className="w-4 h-4" />
-              Lead Hunter
-            </button>
-            <button
               onClick={() => setAppState("call_logs")}
               className={`sidebar-item ${appState === "call_logs" ? "active" : ""}`}
             >
               <Phone className="w-4 h-4" />
-              Call Logs
+              Call Intelligence
             </button>
 
             <div className="text-[10px] font-mono text-gray-600 uppercase tracking-[0.15em] mb-1 mt-4 px-3">
-              AI Tools
+              AI Team
             </div>
+            <button
+              onClick={() => setAppState("hunter")}
+              className={`sidebar-item ${appState === "hunter" ? "active" : ""}`}
+            >
+              <Target className="w-4 h-4" />
+              Lead Researcher
+            </button>
             <button
               onClick={() => setAppState("persona")}
               className={`sidebar-item ${appState === "persona" ? "active" : ""}`}
             >
               <Bot className="w-4 h-4" />
-              AI Architect
+              AI Caller
             </button>
             <button
               onClick={() => setAppState("trainer")}
               className={`sidebar-item ${appState === "trainer" ? "active" : ""}`}
             >
               <Swords className="w-4 h-4" />
-              Objection Sparring
+              Sales Coach
             </button>
 
             <div className="mt-auto pt-4">
