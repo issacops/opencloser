@@ -9,6 +9,10 @@ export interface Lead {
   name: string;
   company: string;
   phone: string;
+  email?: string;
+  title?: string;
+  linkedin_url?: string;
+  notes?: string;
   status: LeadStatus;
   score: number;
   created_at: string;
@@ -28,6 +32,19 @@ export interface Campaign {
   name: string;
   target_criteria: string;
   status: string;
+  created_at: string;
+}
+
+export interface CallSession {
+  id: string;
+  lead_id: string;
+  provider: string;
+  duration_seconds: number;
+  transcript: string;
+  status: string;
+  sentiment: string;
+  objections_handled: string;
+  emotion_log: string;
   created_at: string;
 }
 

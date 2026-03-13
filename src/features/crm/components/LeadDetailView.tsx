@@ -19,6 +19,8 @@ import {
   User,
   Bot,
   Calendar,
+  Share2,
+  MoreHorizontal
 } from "lucide-react";
 
 interface CallLog {
@@ -135,137 +137,136 @@ export function LeadDetailView({ lead, icp, onBack, onDial, onDelete, onStatusCh
     }
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const scoreColor = lead.score >= 90 ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" 
-    : lead.score >= 75 ? "text-blue-400 bg-blue-500/10 border-blue-500/20" 
-    : "text-amber-400 bg-amber-500/10 border-amber-500/20";
+  const getScoreStyles = (score: number) => {
+    if (score >= 90) return "badge-success";
+    if (score >= 75) return "badge-progress";
+    if (score >= 60) return "badge-pending";
+    return "badge-error";
+  };
 
-  const statusColor: Record<string, string> = {
-    "Discovery": "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    "Outbound Call": "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    "Audit Requested": "bg-purple-500/10 text-purple-400 border-purple-500/20",
-    "Closed": "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  const statusBadgeColor: Record<string, string> = {
+    "Discovery": "badge-pending",
+    "Outbound Call": "btn-coral opacity-80",
+    "Audit Requested": "badge-progress",
+    "Closed": "badge-success",
   };
 
   return (
-    <div className="flex flex-col h-full w-full max-w-5xl mx-auto py-8 lg:py-10 px-4 lg:px-8 custom-scrollbar overflow-y-auto">
-      {/* Back Button */}
-      <button
-        onClick={onBack}
-        className="group flex items-center gap-2 text-[13px] text-gray-500 hover:text-indigo-400 transition-colors duration-300 mb-8 w-fit font-medium"
-      >
-        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-        Return to Pipeline
-      </button>
+    <div className="flex flex-col h-full w-full max-w-5xl mx-auto py-8 lg:py-10 px-6 lg:px-10 custom-scrollbar overflow-y-auto">
+      {/* ── Navigation ── */}
+      <div className="flex items-center justify-between mb-10 animate-fade-in">
+        <button
+          onClick={onBack}
+          className="group flex items-center gap-2 text-[13px] text-ink-secondary hover:text-coral transition-colors duration-300 font-bold uppercase tracking-widest"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Back to Pipeline
+        </button>
+        <div className="flex items-center gap-3">
+           <button className="p-2.5 rounded-xl border border-surface-border text-ink-secondary hover:text-ink hover:bg-surface-bg transition-smooth"><Share2 className="w-4.5 h-4.5" /></button>
+           <button onClick={handleDelete} className="p-2.5 rounded-xl border border-surface-border text-red-500 hover:bg-red-50 transition-smooth"><Trash2 className="w-4.5 h-4.5" /></button>
+        </div>
+      </div>
 
-      {/* Lead Header Card */}
-      <div className="glass-card rounded-[2rem] p-8 mb-8 animate-fade-in relative overflow-hidden group">
-         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-indigo-500/20 transition-colors duration-1000"></div>
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
-          <div className="flex items-start gap-6">
-            {/* Avatar */}
+      {/* ── Profile Header ── */}
+      <div className="card p-8 mb-8 animate-fade-in relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 relative z-10">
+          <div className="flex items-start gap-8">
             <div className="relative shrink-0">
-               <div className="absolute -inset-2 bg-indigo-500/20 rounded-full blur-md animate-pulse"></div>
-              <div className="w-20 h-20 rounded-[1.25rem] bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/30 flex items-center justify-center text-4xl font-black text-white glow-indigo relative z-10">
+               <div className="w-24 h-24 rounded-[2rem] bg-surface-bg border-4 border-white shadow-card flex items-center justify-center text-4xl font-black text-ink-secondary relative z-10">
                 {lead.name.charAt(0)}
               </div>
             </div>
             <div>
-              <h1 className="text-3xl font-extrabold text-white tracking-tight">{lead.name}</h1>
-              <div className="flex flex-wrap items-center gap-4 mt-2">
-                <span className="flex items-center gap-2 text-[15px] font-medium text-gray-300 bg-white/[0.03] px-3 py-1.5 rounded-xl border border-white/[0.05]">
-                  <Building2 className="w-4 h-4 text-gray-500" /> {lead.company}
+              <h1 className="text-[32px] font-bold text-ink tracking-tight leading-none mb-3">{lead.name}</h1>
+              <div className="flex flex-wrap items-center gap-6">
+                <span className="flex items-center gap-2 text-[13px] font-bold text-ink-secondary uppercase tracking-widest bg-surface-bg px-4 py-2 rounded-xl border border-surface-border">
+                  <Building2 className="w-4 h-4 text-ink-muted" /> {lead.company}
                 </span>
-                <span className="flex items-center gap-2 text-[15px] text-gray-300 font-mono bg-white/[0.03] px-3 py-1.5 rounded-xl border border-white/[0.05]">
-                  <Phone className="w-4 h-4 text-gray-500" /> {lead.phone}
+                <span className="flex items-center gap-2 text-[13px] text-ink-secondary font-mono font-bold bg-surface-bg px-4 py-2 rounded-xl border border-surface-border">
+                  <Phone className="w-4 h-4 text-ink-muted" /> {lead.phone}
                 </span>
               </div>
-              <div className="flex flex-wrap items-center gap-3 mt-5">
-                <span className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border uppercase tracking-wider ${statusColor[lead.status] || "bg-white/5 text-gray-400 border-white/10"}`}>
+              <div className="flex flex-wrap items-center gap-3 mt-6">
+                <span className={`badge px-4 py-2 font-bold uppercase tracking-widest text-[10px] ${statusBadgeColor[lead.status]}`}>
                   {lead.status}
                 </span>
-                <span className={`text-xs font-mono font-bold px-3 py-1.5 rounded-lg border flex items-center gap-1.5 ${scoreColor}`}>
+                <span className={`badge ${getScoreStyles(lead.score)} px-4 py-2 font-bold uppercase tracking-widest text-[10px] flex items-center gap-1.5`}>
                   <Activity className="w-3.5 h-3.5" />
                   Score: {lead.score}
                 </span>
-                <span className="text-xs text-gray-500 flex items-center gap-1.5 font-medium ml-2">
-                  <Calendar className="w-3.5 h-3.5 text-gray-600" /> Acquired {formatDate(lead.created_at)}
+                <span className="text-[11px] text-ink-muted flex items-center gap-1.5 font-bold uppercase tracking-widest ml-2">
+                  <Calendar className="w-3.5 h-3.5" /> Established {formatDate(lead.created_at)}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex flex-col gap-3 shrink-0">
             <button
               onClick={() => onDial(lead)}
-              className="flex items-center gap-2 bg-white text-black hover:bg-gray-200 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 active:scale-95"
+              className="btn-coral px-8 py-4 flex items-center gap-3 shadow-coral"
             >
-              <PhoneCall className="w-4 h-4" /> Initiate Sequence
+              <PhoneCall className="w-5 h-5" />
+              <span className="font-bold flex flex-col items-start leading-none uppercase tracking-widest text-xs">
+                 <span>Initiate</span>
+                 <span className="text-[10px] text-white/70 mt-1">Autonomous Execution</span>
+              </span>
             </button>
             <div className="relative group/select">
               <select
                 value={lead.status}
                 onChange={(e) => onStatusChange(lead.id, e.target.value as LeadStatus)}
-                className="bg-[#050505] border border-white/10 rounded-xl pl-4 pr-10 py-3 text-sm font-medium text-gray-300 focus:outline-none focus:border-indigo-500/50 transition-premium appearance-none cursor-pointer hover:border-white/20"
+                className="w-full bg-surface-bg border border-surface-border rounded-xl pl-4 pr-10 py-3.5 text-xs font-bold text-ink-secondary focus:outline-none focus:border-coral/30 transition-smooth appearance-none cursor-pointer hover:border-ink-secondary/20 uppercase tracking-widest"
               >
                 {STATUSES.map(s => (
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none group-hover/select:text-gray-300 transition-colors" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted pointer-events-none" />
             </div>
-            <button
-              onClick={handleDelete}
-              className="p-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl border border-red-500/20 transition-all duration-300 hover:scale-105 active:scale-95"
-              title="Purge Record"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-3 gap-6 mb-8 stagger-children">
-        <div className="glass-card rounded-[1.5rem] p-6 text-center relative overflow-hidden group">
-           <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 blur-[20px] rounded-full group-hover:bg-blue-500/20 transition-colors duration-500 pointer-events-none"></div>
-          <div className="text-4xl font-extrabold text-white tabular-nums tracking-tight relative z-10">{callLogs.length}</div>
-          <div className="flex items-center justify-center gap-2 text-[11px] text-gray-500 uppercase tracking-[0.15em] mt-3 font-mono relative z-10">
-             <Phone className="w-3 h-3" /> Total Engagements
+      {/* ── Metric Snapshot ── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 stagger-children">
+        <div className="card p-6 flex flex-col items-center justify-center text-center group hover:border-coral/20 transition-smooth">
+          <div className="text-4xl font-black text-ink tracking-tight tabular-nums mb-2">{callLogs.length}</div>
+          <div className="stat-label flex items-center gap-2">
+             <Phone className="w-3.5 h-3.5" /> Session Volume
           </div>
         </div>
-        <div className="glass-card rounded-[1.5rem] p-6 text-center relative overflow-hidden group">
-           <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-500/10 blur-[20px] rounded-full group-hover:bg-indigo-500/20 transition-colors duration-500 pointer-events-none"></div>
-          <div className="text-4xl font-extrabold text-white tabular-nums tracking-tight relative z-10">
+        <div className="card p-6 flex flex-col items-center justify-center text-center group hover:border-coral/20 transition-smooth">
+          <div className="text-4xl font-black text-ink tracking-tight tabular-nums mb-2">
             {callLogs.length > 0 ? formatDuration(Math.round(callLogs.reduce((s, c) => s + c.duration_seconds, 0) / callLogs.length)) : "0:00"}
           </div>
-          <div className="flex items-center justify-center gap-2 text-[11px] text-gray-500 uppercase tracking-[0.15em] mt-3 font-mono relative z-10">
-             <Clock className="w-3 h-3" /> Mean Duration
+          <div className="stat-label flex items-center gap-2">
+             <Clock className="w-3.5 h-3.5" /> Mean Duration
           </div>
         </div>
-        <div className="glass-card rounded-[1.5rem] p-6 text-center relative overflow-hidden group">
-           <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/10 blur-[20px] rounded-full group-hover:bg-amber-500/20 transition-colors duration-500 pointer-events-none"></div>
-          <div className="text-4xl font-extrabold text-white tabular-nums tracking-tight relative z-10">{notes.length}</div>
-          <div className="flex items-center justify-center gap-2 text-[11px] text-gray-500 uppercase tracking-[0.15em] mt-3 font-mono relative z-10">
-             <StickyNote className="w-3 h-3" /> Data Logs
+        <div className="card p-6 flex flex-col items-center justify-center text-center group hover:border-coral/20 transition-smooth">
+          <div className="text-4xl font-black text-ink tracking-tight tabular-nums mb-2">{notes.length}</div>
+          <div className="stat-label flex items-center gap-2">
+             <StickyNote className="w-3.5 h-3.5" /> Data Logs
           </div>
         </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="flex gap-2 glass-card rounded-2xl p-1.5 mb-8 relative z-10">
+      {/* ── Intelligent Navigation ── */}
+      <div className="flex gap-2 bg-surface-bg/50 border border-surface-border rounded-2xl p-1.5 mb-10 relative z-10 shadow-sm">
         {([
-          { key: "timeline", label: "Timeline", icon: Activity },
-          { key: "calls", label: `Calls (${callLogs.length})`, icon: Phone },
-          { key: "notes", label: `Notes (${notes.length})`, icon: StickyNote },
+          { key: "timeline", label: "Operational Timeline", icon: Activity },
+          { key: "calls", label: `Session Intel (${callLogs.length})`, icon: Phone },
+          { key: "notes", label: `Knowledge Base (${notes.length})`, icon: StickyNote },
         ] as const).map(tab => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+            className={`flex-1 flex items-center justify-center gap-2.5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-smooth ${
               activeTab === tab.key
-                ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.2)]"
-                : "text-gray-500 hover:text-gray-300 hover:bg-white/[0.02]"
+                ? "bg-white text-ink shadow-sm border border-surface-border"
+                : "text-ink-secondary hover:text-ink hover:bg-white/40"
             }`}
           >
             <tab.icon className="w-4 h-4" /> {tab.label}
@@ -273,69 +274,69 @@ export function LeadDetailView({ lead, icp, onBack, onDial, onDelete, onStatusCh
         ))}
       </div>
 
-      {/* Tab Content */}
+      {/* ── Adaptive Content Flow ── */}
       <div className="flex-1 overflow-y-auto custom-scrollbar pb-10">
         {loading ? (
-          <div className="flex justify-center items-center h-48">
-             <div className="relative">
-                <div className="absolute inset-0 bg-indigo-500/20 rounded-full blur-xl animate-pulse"></div>
-                <div className="shimmer text-indigo-400 font-mono text-sm tracking-widest uppercase relative z-10">Indexing Telemetry...</div>
-             </div>
+          <div className="flex flex-col items-center justify-center h-48">
+              <div className="w-8 h-8 border-2 border-surface-border border-t-coral rounded-full animate-spin"></div>
+              <div className="mt-4 text-[11px] font-bold text-ink-secondary uppercase tracking-[0.2em]">Synchronizing Records</div>
           </div>
         ) : activeTab === "timeline" ? (
-          /* Timeline View */
-          <div className="relative pl-10 ml-4">
-            <div className="absolute left-0 top-4 bottom-4 w-0.5 bg-gradient-to-b from-indigo-500/50 via-purple-500/20 to-transparent"></div>
+          /* Timeline Flow */
+          <div className="relative pl-12 ml-4">
+            <div className="absolute left-0 top-0 bottom-0 w-px bg-surface-border"></div>
 
-            <div className="space-y-8 animate-fade-in relative z-10">
+            <div className="space-y-10 animate-fade-in relative z-10">
               {timelineItems.map((item, i) => (
                 <div key={i} className="relative group">
-                  <div className={`absolute -left-[45px] top-5 w-5 h-5 rounded-full border-4 shadow-lg z-20 transition-transform duration-300 group-hover:scale-125 ${
-                    item.type === "call" ? "bg-[#0a0a0a] border-blue-500" :
-                    item.type === "note" ? "bg-[#0a0a0a] border-amber-500" :
-                    "bg-[#0a0a0a] border-gray-500"
+                  <div className={`absolute -left-[54px] top-5 w-4 h-4 rounded-md border-2 border-white shadow-sm z-20 transition-all duration-300 group-hover:scale-110 ${
+                    item.type === "call" ? "bg-coral" :
+                    item.type === "note" ? "bg-ink" :
+                    "bg-ink-faint"
                   }`}></div>
 
-                  <div className="glass-card rounded-[1.5rem] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-white/[0.08] hover:shadow-2xl relative overflow-hidden">
-                    <div className="flex items-center justify-between mb-4 relative z-10">
-                      <div className="flex items-center gap-2.5 text-[11px] font-mono uppercase tracking-[0.15em] text-gray-400">
-                        {item.type === "call" && <div className="p-1 rounded-md bg-blue-500/10 border border-blue-500/20"><Phone className="w-3.5 h-3.5 text-blue-400" /></div>}
-                        {item.type === "note" && <div className="p-1 rounded-md bg-amber-500/10 border border-amber-500/20"><StickyNote className="w-3.5 h-3.5 text-amber-400" /></div>}
-                        {item.type === "created" && <div className="p-1 rounded-md bg-gray-500/10 border border-gray-500/20"><Activity className="w-3.5 h-3.5 text-gray-400" /></div>}
-                        <span className={item.type === 'call' ? 'text-blue-400' : item.type === 'note' ? 'text-amber-400' : 'text-gray-400'}>
-                          {item.type === "call" ? "Acoustic Session" : item.type === "note" ? "Data Imprint" : "Node Initialized"}
+                  <div className="card p-6 transition-smooth hover:shadow-card-hover hover:border-ink-secondary/10 relative overflow-hidden group/item">
+                    <div className="flex items-center justify-between mb-5 relative z-10">
+                      <div className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-widest text-ink-secondary">
+                        {item.type === "call" && <Phone className="w-3.5 h-3.5 text-coral" />}
+                        {item.type === "note" && <StickyNote className="w-3.5 h-3.5 text-ink" />}
+                        {item.type === "created" && <Activity className="w-3.5 h-3.5 text-ink-muted" />}
+                        <span>
+                          {item.type === "call" ? "Execution Session" : item.type === "note" ? "Intelligence Entry" : "Creation Event"}
                         </span>
                       </div>
-                      <span className="text-xs text-gray-500 font-medium font-mono">
-                        {formatDate(item.date)} // {formatTime(item.date)}
+                      <span className="text-[11px] text-ink-muted font-bold tracking-widest">
+                        {formatDate(item.date)} • {formatTime(item.date)}
                       </span>
                     </div>
 
                     <div className="relative z-10">
                       {item.type === "call" && item.data && (
-                        <div className="flex items-center gap-4 bg-white/[0.02] border border-white/[0.05] p-3 rounded-xl w-fit">
-                          <span className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg border tracking-wide ${
-                            (item.data as CallLog).status === "Success" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" :
-                            (item.data as CallLog).status === "Voicemail" ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30" :
-                            "bg-red-500/10 text-red-400 border-red-500/30"
-                          }`}>
-                            {(item.data as CallLog).status}
-                          </span>
-                          <span className="flex items-center gap-1.5 text-[13px] text-gray-400 font-mono">
-                             <Clock className="w-3.5 h-3.5 text-gray-500" />
-                            {formatDuration((item.data as CallLog).duration_seconds)}
-                          </span>
+                        <div className="flex items-center justify-between bg-surface-bg px-6 py-4 rounded-2xl border border-surface-border group-hover/item:border-coral/20 transition-smooth">
+                          <div className="flex items-center gap-6">
+                            <span className={`badge px-3 py-1 text-[10px] font-bold uppercase tracking-tighter ${
+                              (item.data as CallLog).status === "Success" ? "badge-success" :
+                              (item.data as CallLog).status === "Voicemail" ? "badge-pending" : "badge-error"
+                            }`}>
+                              {(item.data as CallLog).status}
+                            </span>
+                            <span className="flex items-center gap-2 text-sm font-bold text-ink-secondary font-mono">
+                               <Clock className="w-4 h-4 text-ink-muted" />
+                              {formatDuration((item.data as CallLog).duration_seconds)}
+                            </span>
+                          </div>
+                          <button className="text-[10px] font-bold text-ink-secondary uppercase tracking-widest flex items-center gap-1.5 hover:text-coral transition-smooth">View full logs <ArrowLeft className="w-3 h-3 rotate-180" /></button>
                         </div>
                       )}
 
                       {item.type === "note" && item.data && (
-                        <p className="text-[14px] text-gray-300 leading-relaxed pl-3 border-l-2 border-amber-500/30">
+                        <p className="text-[15px] text-ink-secondary leading-relaxed font-medium bg-surface-bg/40 p-5 rounded-2xl border border-dashed border-surface-border">
                           {(item.data as LeadNote).content}
                         </p>
                       )}
 
                       {item.type === "created" && (
-                        <p className="text-[14px] text-gray-500 font-medium">Entity integrated into operational pipeline.</p>
+                        <p className="text-[15px] text-ink-muted font-bold uppercase tracking-widest italic opacity-60">Record officially added to the database.</p>
                       )}
                     </div>
                   </div>
@@ -343,20 +344,20 @@ export function LeadDetailView({ lead, icp, onBack, onDial, onDelete, onStatusCh
               ))}
 
               {timelineItems.length === 0 && (
-                <div className="flex flex-col items-center justify-center p-12 glass-card rounded-3xl border border-white/[0.05]">
-                  <Activity className="w-12 h-12 mb-4 text-gray-600 opacity-50" />
-                  <p className="text-gray-400 font-medium">No operational history detected.</p>
+                <div className="card p-16 flex flex-col items-center justify-center text-center opacity-70">
+                  <Activity className="w-12 h-12 mb-4 text-ink-muted opacity-30" />
+                  <p className="font-bold text-ink-secondary text-base italic">Zero operational activity detected.</p>
                 </div>
               )}
             </div>
           </div>
         ) : activeTab === "calls" ? (
-          /* Calls View */
+          /* Execution History Flow */
           <div className="space-y-4 animate-fade-in">
             {callLogs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-16 glass-card rounded-3xl border border-white/[0.05]">
-                <Phone className="w-12 h-12 mb-4 text-gray-600 opacity-50" />
-                <p className="text-gray-400 font-medium">No acoustic sessions recorded.</p>
+              <div className="card p-16 flex flex-col items-center justify-center text-center opacity-70">
+                <Phone className="w-12 h-12 mb-4 text-ink-muted opacity-30" />
+                <p className="font-bold text-ink-secondary text-base italic">No session intelligence stored.</p>
               </div>
             ) : callLogs.map(log => {
               const isExpanded = expandedCallId === log.id;
@@ -364,71 +365,73 @@ export function LeadDetailView({ lead, icp, onBack, onDial, onDelete, onStatusCh
               try { transcriptData = JSON.parse(log.transcript); } catch {}
 
               return (
-                <div key={log.id} className={`glass-card rounded-[2rem] overflow-hidden transition-all duration-300 ${isExpanded ? 'border-white/[0.1] shadow-2xl' : 'hover:border-white/[0.08] hover:-translate-y-0.5'}`}>
+                <div key={log.id} className={`card overflow-hidden transition-smooth ${isExpanded ? 'ring-2 ring-coral/10 shadow-xl' : 'hover:border-ink-secondary/10 hover:shadow-card-hover'}`}>
                   <div 
-                    className={`flex items-center justify-between p-6 cursor-pointer relative overflow-hidden group ${isExpanded ? 'bg-white/[0.02]' : ''}`}
+                    className={`flex items-center justify-between p-6 cursor-pointer bg-white transition-colors duration-200 ${isExpanded ? 'bg-surface-hover/30' : ''}`}
                     onClick={() => setExpandedCallId(isExpanded ? null : log.id)}
                   >
-                    {isExpanded && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>}
-                    <div className="flex items-center gap-5 relative z-10">
-                      <span className={`flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-xl border uppercase tracking-wider ${
-                        log.status === "Success" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" :
-                        log.status === "Voicemail" ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30" :
-                        "bg-red-500/10 text-red-400 border-red-500/30"
+                    <div className="flex items-center gap-8 relative z-10">
+                      <span className={`badge px-4 py-2 text-[10px] font-bold uppercase tracking-widest ${
+                        log.status === "Success" ? "badge-success" :
+                        log.status === "Voicemail" ? "badge-pending" : "badge-error"
                       }`}>
-                        {log.status === "Success" ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                        {log.status === "Success" ? <CheckCircle2 className="w-4 h-4 mr-2 inline" /> : <XCircle className="w-4 h-4 mr-2 inline" />}
                         {log.status}
                       </span>
-                      <span className="text-[13px] font-mono text-gray-300 flex items-center gap-2 bg-white/[0.03] px-3 py-1.5 rounded-xl border border-white/[0.05]">
-                        <Clock className="w-3.5 h-3.5 text-gray-500" /> {formatDuration(log.duration_seconds)}
-                      </span>
-                      <span className="hidden md:flex text-[13px] text-gray-400">
-                        {formatDate(log.created_at)} &bull; {formatTime(log.created_at)}
-                      </span>
+                      <div className="flex items-center gap-6">
+                        <span className="text-sm font-bold text-ink-secondary font-mono flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-ink-muted" /> {formatDuration(log.duration_seconds)}
+                        </span>
+                        <span className="hidden md:flex text-[11px] font-bold text-ink-muted uppercase tracking-widest">
+                          {formatDate(log.created_at)} • {formatTime(log.created_at)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4 relative z-10">
-                      <span className="text-[11px] font-mono uppercase tracking-widest text-gray-500 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5">
-                        {Array.isArray(transcriptData) ? transcriptData.length : 0} nodes
-                      </span>
-                      <div className={`w-8 h-8 rounded-full border border-white/10 flex items-center justify-center transition-transform duration-300 ${isExpanded ? 'bg-white/10 rotate-180' : 'bg-white/5 group-hover:bg-white/10'}`}>
-                        <ChevronDown className={`w-4 h-4 ${isExpanded ? 'text-white' : 'text-gray-400'}`} />
+                    <div className="flex items-center gap-5 relative z-10">
+                      <div className={`p-2 rounded-lg border border-surface-border transition-smooth shadow-sm ${isExpanded ? 'bg-ink text-white rotate-180' : 'bg-surface-bg text-ink-secondary hover:text-ink'}`}>
+                        <ChevronDown className="w-4 h-4" />
                       </div>
                     </div>
                   </div>
 
                   {isExpanded && (
-                    <div className="border-t border-white/[0.05] bg-[#030303] p-6 animate-slide-in-up relative">
-                      <h4 className="flex items-center gap-2 text-[11px] font-mono text-blue-400 uppercase tracking-[0.2em] mb-5">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
-                        Acoustic Transcript
-                      </h4>
+                    <div className="border-t border-surface-border bg-surface-bg/30 p-8 animate-fade-in relative">
+                      <div className="flex items-center justify-between mb-8 pb-4 border-b border-surface-border/50">
+                        <div className="flex items-center gap-3">
+                           <div className="w-2.5 h-2.5 rounded-full bg-coral"></div>
+                           <h4 className="text-[12px] font-bold text-ink uppercase tracking-widest italic">Autonomous Intelligence Matrix</h4>
+                        </div>
+                        <div className="text-[10px] font-mono text-ink-muted uppercase tracking-widest">{Array.isArray(transcriptData) ? transcriptData.length : 0} Session Nodes</div>
+                      </div>
+                      
                       {Array.isArray(transcriptData) && transcriptData.length > 0 ? (
-                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
+                        <div className="space-y-6 max-h-[450px] overflow-y-auto pr-4 custom-scrollbar">
                           {transcriptData.map((entry: any, idx: number) => (
-                            <div key={idx} className={`flex gap-3 ${entry.role === 'user' ? 'justify-end' : ''}`}>
+                            <div key={idx} className={`flex gap-4 ${entry.role === 'user' ? 'justify-end' : ''}`}>
                               {entry.role !== 'user' && (
-                                <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-1">
-                                  <Bot className="w-3.5 h-3.5 text-emerald-400" />
+                                <div className="w-9 h-9 rounded-xl bg-coral flex items-center justify-center shrink-0 mt-1 shadow-coral overflow-hidden">
+                                   <div className="text-white text-[11px] font-black uppercase">AI</div>
                                 </div>
                               )}
-                              <div className={`max-w-[75%] rounded-2xl px-5 py-3 text-[14px] leading-relaxed ${
+                              <div className={`max-w-[75%] rounded-2xl px-5 py-4 text-[15px] leading-relaxed shadow-sm transform transition-all hover:scale-[1.01] ${
                                 entry.role === 'user'
-                                  ? 'bg-gradient-to-br from-blue-600/25 to-indigo-600/25 text-blue-50 border border-blue-500/25 rounded-tr-sm'
-                                  : 'bg-[#0a0a0a] text-gray-200 border border-white/10 rounded-tl-sm'
+                                  ? 'bg-ink text-white rounded-tr-sm font-medium'
+                                  : 'bg-white text-ink border border-surface-border rounded-tl-sm font-medium'
                               }`}>
                                 {entry.text}
                               </div>
                               {entry.role === 'user' && (
-                                <div className="w-7 h-7 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center shrink-0 mt-1">
-                                  <User className="w-3.5 h-3.5 text-blue-400" />
+                                <div className="w-9 h-9 rounded-xl bg-white border border-surface-border flex items-center justify-center shrink-0 mt-1 shadow-sm">
+                                   <div className="text-ink-secondary text-[11px] font-black uppercase tracking-widest">{lead.name.charAt(0)}</div>
                                 </div>
                               )}
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="text-[14px] text-gray-500 italic bg-white/[0.02] border border-white/[0.05] rounded-2xl p-6 text-center">
-                          No verifiable data detected.
+                        <div className="card p-12 flex flex-col items-center justify-center text-center opacity-60">
+                           <Bot className="w-10 h-10 mb-4 text-ink-muted opacity-30" />
+                           <p className="font-bold text-ink-secondary text-sm italic">Failed to decompose acoustic data.</p>
                         </div>
                       )}
                     </div>
@@ -438,51 +441,67 @@ export function LeadDetailView({ lead, icp, onBack, onDial, onDelete, onStatusCh
             })}
           </div>
         ) : (
-          /* Notes View */
+          /* Intelligence Repository */
           <div className="space-y-6 animate-fade-in">
-            {/* Add Note Input */}
-            <div className="glass-card rounded-[2rem] p-6 relative overflow-hidden focus-within:border-amber-500/30 transition-all duration-300">
-              <div className="flex gap-4 relative z-10">
-                <textarea
-                  value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleAddNote();
-                  }}
-                  placeholder="Imprint observation data..."
-                  className="flex-1 bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-[15px] text-white resize-none focus:outline-none focus:border-amber-500/50 transition-premium custom-scrollbar"
-                  rows={3}
-                />
-                <button
-                  onClick={handleAddNote}
-                  disabled={!newNote.trim()}
-                  className="self-end bg-gradient-to-br from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 disabled:from-white/5 disabled:to-white/5 disabled:text-gray-600 text-white px-5 py-4 rounded-xl transition-all duration-300 font-bold shadow-lg active:scale-95 border border-amber-500/50 shrink-0"
-                >
-                  <Send className="w-5 h-5" />
-                </button>
+            {/* Entry Module */}
+            <div className="card p-8 border-dashed border-2 hover:border-coral/30 border-surface-border group transition-smooth">
+              <div className="flex gap-6 relative z-10">
+                <div className="flex-1">
+                  <div className="stat-label mb-3 flex items-center gap-2">
+                     <stickyNote className="w-3.5 h-3.5" /> Intelligence Entry
+                  </div>
+                  <textarea
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleAddNote();
+                    }}
+                    placeholder="Imprint observations into the database..."
+                    className="w-full bg-surface-bg border border-surface-border rounded-2xl px-6 py-5 text-[16px] text-ink font-medium resize-none focus:outline-none focus:border-coral/40 transition-smooth placeholder:text-ink-muted/50"
+                    rows={4}
+                  />
+                  <div className="flex items-center justify-between mt-5">
+                     <p className="text-[10px] font-bold text-ink-muted uppercase tracking-[0.2em]">Hotkey: Cmd/Ctrl + Enter</p>
+                     <button
+                       onClick={handleAddNote}
+                       disabled={!newNote.trim()}
+                       className="btn-dark px-10 py-3.5 flex items-center gap-3 shadow-dark-hover"
+                     >
+                       <span className="font-bold uppercase tracking-widest text-xs">Imprint Knowledge</span>
+                       <Send className="w-4 h-4" />
+                     </button>
+                  </div>
+                </div>
               </div>
-              <p className="text-[11px] font-mono text-gray-500 uppercase tracking-widest mt-4">Cmd/Ctrl + Enter to Execute</p>
             </div>
 
-            {/* Notes List */}
+            {/* Knowledge Objects */}
             {notes.length === 0 ? (
-              <div className="text-center text-gray-500 py-16 glass-card rounded-3xl border border-white/[0.05]">
-                <StickyNote className="w-12 h-12 mx-auto mb-4 opacity-30 text-amber-500" />
-                <p className="font-medium">Database pristine. Awaiting input.</p>
+              <div className="card p-20 flex flex-col items-center justify-center text-center opacity-70">
+                <StickyNote className="w-16 h-16 mb-6 text-ink-muted opacity-20" />
+                <p className="font-bold text-ink-secondary text-base italic">Knowledge base is currently empty.</p>
               </div>
-            ) : notes.map(note => (
-              <div key={note.id} className="glass-card rounded-3xl p-6 relative overflow-hidden group hover:border-amber-500/20 transition-colors duration-300">
-                <div className="flex items-center justify-between mb-4 relative z-10">
-                  <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.15em] text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/20">
-                    <StickyNote className="w-3.5 h-3.5" /> Data Imprint
-                  </div>
-                  <span className="text-[12px] font-medium text-gray-500 font-mono">
-                     {formatDate(note.created_at)} &bull; {formatTime(note.created_at)}
-                  </span>
-                </div>
-                <p className="text-[15px] text-gray-300 leading-relaxed whitespace-pre-wrap relative z-10">{note.content}</p>
-              </div>
-            ))}
+            ) : (
+               <div className="grid grid-cols-1 gap-6">
+                 {notes.map(note => (
+                   <div key={note.id} className="card p-8 group hover:border-ink-secondary/10 transition-smooth relative overflow-hidden">
+                     <div className="flex items-center justify-between mb-6">
+                       <span className="badge badge-pending px-4 py-1.5 font-bold uppercase tracking-widest text-[9px] flex items-center gap-2">
+                         <StickyNote className="w-3.5 h-3.5" /> Intel Object
+                       </span>
+                       <span className="text-[11px] font-bold text-ink-muted tracking-widest">
+                          {formatDate(note.created_at)} • {formatTime(note.created_at)}
+                       </span>
+                     </div>
+                     <p className="text-[16px] text-ink-secondary leading-relaxed font-medium whitespace-pre-wrap">{note.content}</p>
+                     
+                     <div className="mt-8 pt-6 border-t border-surface-border flex justify-end opacity-0 group-hover:opacity-100 transition-smooth">
+                        <button className="text-[10px] font-bold text-ink-muted uppercase tracking-widest hover:text-coral flex items-center gap-1.5">Modify record <MoreHorizontal className="w-4 h-4" /></button>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+            )}
           </div>
         )}
       </div>

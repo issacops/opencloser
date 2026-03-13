@@ -18,7 +18,7 @@ pub async fn simulate_lead_scraping(
     icp: Option<Value>,
 ) -> Result<Vec<LeadSimulation>, String> {
     let api_key = env::var("GEMINI_API_KEY").unwrap_or_default();
-    if api_key.is_empty() {
+    if api_key.is_empty() || api_key == "MY_GEMINI_API_KEY" {
         // Fallback mock mode if no API key is provided
         println!("MOCK MODE: Simulating lead scraping because GEMINI_API_KEY is not set.");
         
@@ -131,7 +131,7 @@ pub struct IcpResponseData {
 #[tauri::command]
 pub async fn process_onboarding_chat(messages: Vec<Value>) -> Result<IcpResponseData, String> {
     let api_key = env::var("GEMINI_API_KEY").unwrap_or_default();
-    if api_key.is_empty() {
+    if api_key.is_empty() || api_key == "MY_GEMINI_API_KEY" {
         // Fallback mock mode if no API key is provided
         println!("MOCK MODE: Simulating AI chat because GEMINI_API_KEY is not set.");
 
@@ -253,7 +253,7 @@ pub async fn analyze_call_transcript(
 ) -> Result<Value, String> {
     let api_key = env::var("GEMINI_API_KEY").unwrap_or_default();
     
-    if api_key.is_empty() {
+    if api_key.is_empty() || api_key == "MY_GEMINI_API_KEY" {
         // Mock fallback
         return Ok(json!({
             "summary": "The AI agent connected with the prospect and had a productive 3-minute conversation. The prospect expressed interest in learning more about the solution but wants to consult with their team before committing to a meeting.",
