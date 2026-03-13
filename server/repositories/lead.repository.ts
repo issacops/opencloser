@@ -10,24 +10,24 @@ export function insertLead(
     phone: string,
     status: string,
     score: number,
+    email: string = "",
+    title: string = "",
+    linkedin_url: string = "",
 ) {
     const id = `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const stmt = db.prepare(
-        "INSERT INTO leads (id, name, company, phone, status, score) VALUES (?, ?, ?, ?, ?, ?)",
-    );
-    stmt.run(id, name, company, phone, status, score);
+    db.prepare(
+        "INSERT INTO leads (id, name, company, phone, status, score, email, title, linkedin_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    ).run(id, name, company, phone, status, score, email, title, linkedin_url);
     return id;
 }
 
 export function updateLeadStatus(id: string, status: string) {
-    const stmt = db.prepare("UPDATE leads SET status = ? WHERE id = ?");
-    stmt.run(status, id);
+    db.prepare("UPDATE leads SET status = ? WHERE id = ?").run(status, id);
 }
 
 export function addActivity(leadId: string, type: string, description: string) {
     const id = `act_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const stmt = db.prepare(
-        "INSERT INTO activities (id, lead_id, type, description) VALUES (?, ?, ?, ?)",
-    );
-    stmt.run(id, leadId, type, description);
+    db.prepare(
+        "INSERT INTO activities (id, lead_id, type, description) VALUES (?, ?, ?, ?)"
+    ).run(id, leadId, type, description);
 }

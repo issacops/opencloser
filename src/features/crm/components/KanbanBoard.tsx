@@ -26,6 +26,9 @@ import {
   Bot,
   Home,
   Swords,
+  Zap,
+  Bell,
+  ChevronDown,
 } from "lucide-react";
 
 const COLUMNS: LeadStatus[] = [
@@ -35,11 +38,30 @@ const COLUMNS: LeadStatus[] = [
   "Closed",
 ];
 
+const NAV_ITEMS = [
+  { label: "Overview", state: "home" },
+  { label: "Pipeline", state: "dashboard" },
+  { label: "Call Intelligence", state: "call_logs" },
+  { label: "AI Team", state: "persona" },
+];
+
+const SIDEBAR_TOP = [
+  { icon: Home, state: "home", label: "Overview" },
+  { icon: LayoutDashboard, state: "dashboard", label: "Pipeline" },
+  { icon: Phone, state: "call_logs", label: "Call Intelligence" },
+  { icon: Target, state: "hunter", label: "Lead Researcher" },
+  { icon: Bot, state: "persona", label: "AI Caller" },
+  { icon: Swords, state: "trainer", label: "Sales Coach" },
+];
+
+const SIDEBAR_BOTTOM = [
+  { icon: Settings, state: "settings", label: "Settings" },
+];
+
 export function KanbanBoard() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // App State: 'onboarding' -> 'icp_review' -> 'audio_setup' -> 'persona_setup' -> 'dashboard' -> 'hunter' -> 'call_logs' -> 'settings' -> 'persona'
   const [appState, setAppState] = useState<
     "onboarding" | "icp_review" | "audio_setup" | "persona_setup" | "home" | "dashboard" | "hunter" | "call_logs" | "settings" | "persona" | "lead_detail" | "trainer"
   >("onboarding");
@@ -61,10 +83,7 @@ export function KanbanBoard() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const addToast = (type: ToastType, message: string) => {
-    setToasts((prev) => [
-      ...prev,
-      { id: Date.now().toString(), type, message },
-    ]);
+    setToasts((prev) => [...prev, { id: Date.now().toString(), type, message }]);
   };
 
   const removeToast = (id: string) => {
@@ -72,12 +91,26 @@ export function KanbanBoard() {
   };
 
   useEffect(() => {
+    // If we're forcing demo mode or there are no API keys, clear data to force restart
+    const hasAnyKey = localStorage.getItem("gemini_api_key") || localStorage.getItem("openai_api_key") || localStorage.getItem("elevenlabs_api_key");
+    if (!hasAnyKey) {
+        localStorage.removeItem("hasCompletedOnboarding");
+        localStorage.removeItem("hasCompletedAudioSetup");
+        localStorage.removeItem("icp_data");
+        // Keep ai_persona so the form is somewhat pre-filled or uses defaults safely
+    }
+
+    const completed = localStorage.getItem("hasCompletedOnboarding");
+    if (completed) {
+      setAppState("home");
+      const savedIcp = localStorage.getItem("icp_data");
+      if (savedIcp) setIcpData(JSON.parse(savedIcp));
+    }
+
     fetchLeads();
     fetchCallLogs();
     const savedPersona = localStorage.getItem("ai_persona");
-    if (savedPersona) {
-      setPersona(JSON.parse(savedPersona));
-    }
+    if (savedPersona) setPersona(JSON.parse(savedPersona));
   }, []);
 
   const fetchCallLogs = async () => {
@@ -108,56 +141,42 @@ export function KanbanBoard() {
   const handleDrop = async (e: React.DragEvent, status: LeadStatus) => {
     e.preventDefault();
     const leadId = e.dataTransfer.getData("leadId");
-
     const leadToMove = leads.find((l) => l.id === leadId);
     if (!leadToMove || leadToMove.status === status) return;
 
-    // Optimistic update
-    setLeads((prev) =>
-      prev.map((lead) => (lead.id === leadId ? { ...lead, status } : lead)),
-    );
+    setLeads((prev) => prev.map((lead) => (lead.id === leadId ? { ...lead, status } : lead)));
 
-    // If dropped into Outbound Call, start a call
     if (status === "Outbound Call") {
       setActiveCallLead({ ...leadToMove, status });
     }
 
-    // API Call
     try {
       await invoke('update_lead_status', { id: leadId, status });
-
-      // Optional: Show success toast for certain moves
       if (status === "Closed") {
         addToast("success", `Deal closed with ${leadToMove.company}!`);
       }
     } catch (error) {
       console.error("Failed to update lead status:", error);
       addToast("error", "Failed to move lead. Reverting changes.");
-      // Revert on failure
       fetchLeads();
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); };
 
   const handleOnboardingComplete = (icp: ICP) => {
     setIcpData(icp);
-    
-    // Check if they need to do audio setup
+    localStorage.setItem("hasCompletedOnboarding", "true");
+    localStorage.setItem("icp_data", JSON.stringify(icp));
     if (!localStorage.getItem("hasCompletedAudioSetup")) {
       setAppState("audio_setup");
     } else {
       setAppState("icp_review");
     }
-    
     addToast("success", "AI Sales Strategy generated successfully.");
   };
 
-  const handleDial = (lead: Lead) => {
-    setActiveCallLead(lead);
-  };
+  const handleDial = (lead: Lead) => { setActiveCallLead(lead); };
 
   const startPowerDialing = () => {
     const outboundLeads = leads.filter((l) => l.status === "Outbound Call");
@@ -172,11 +191,9 @@ export function KanbanBoard() {
 
   const handleWarRoomClose = (callTranscript?: any[], callDuration?: number) => {
     const closedLead = activeCallLead;
-
     if (isPowerDialing && activeCallLead) {
       const outboundLeads = leads.filter((l) => l.status === "Outbound Call");
       const currentIndex = outboundLeads.findIndex((l) => l.id === activeCallLead.id);
-      
       if (currentIndex !== -1 && currentIndex + 1 < outboundLeads.length) {
         setActiveCallLead(outboundLeads[currentIndex + 1]);
       } else {
@@ -187,167 +204,183 @@ export function KanbanBoard() {
     } else {
       setActiveCallLead(null);
     }
-
-    // Show debrief if we have transcript data
     if (closedLead && callTranscript && callTranscript.length > 0) {
-      setDebriefData({
-        lead: closedLead,
-        transcript: callTranscript,
-        duration: callDuration || 0,
-      });
+      setDebriefData({ lead: closedLead, transcript: callTranscript, duration: callDuration || 0 });
     }
   };
 
-  return (
-    <div className="flex flex-col h-screen bg-[#050505] text-white">
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-3.5 gradient-border bg-[#0a0a0a]/80 backdrop-blur-xl relative z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 flex items-center justify-center border border-indigo-500/20 glow-indigo">
-            <Phone className="w-4 h-4 text-indigo-400" />
-          </div>
-          <h1 className="text-lg font-bold tracking-tight">
-            <span className="gradient-text">Open</span><span className="text-white">Closer</span>
-          </h1>
-        </div>
+  const isAppShellVisible = !["onboarding", "icp_review", "audio_setup", "persona_setup"].includes(appState);
 
-        {(appState === "home" || appState === "dashboard" || appState === "hunter" || appState === "call_logs" || appState === "settings" || appState === "persona" || appState === "lead_detail") && (
-          <div className="flex items-center gap-4">
+  // Determine active nav
+  const activeNavState = appState === "lead_detail" ? "dashboard" : appState;
+
+  return (
+    <div className="flex flex-col h-screen overflow-hidden" style={{ background: "var(--bg-primary)" }}>
+
+      {/* ── Top Header ── */}
+      {isAppShellVisible && (
+        <header
+          className="flex items-center justify-between px-8 py-5 shrink-0"
+          style={{ zIndex: 50, background: "transparent" }}
+        >
+          {/* Logo */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+              style={{ background: "var(--accent-coral)", boxShadow: "var(--shadow-coral)" }}
+            >
+              <Phone className="w-5 h-5 fill-current" />
+            </div>
+            <span className="text-[22px] font-extrabold" style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}>
+              OpenCloser
+            </span>
+          </div>
+
+          {/* Center Nav Pill Container */}
+          <nav className="flex items-center gap-2 px-3 py-2 bg-white rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-gray-100">
+            {NAV_ITEMS.map((item) => (
+              <button
+                key={item.state}
+                onClick={() => setAppState(item.state as any)}
+                className={`px-5 py-2.5 rounded-full text-[14px] font-semibold transition-all duration-200 ${
+                  activeNavState === item.state 
+                    ? "bg-[#1A1D20] text-white shadow-md" 
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50 bg-transparent"
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+
+          {/* Right Controls Pill */}
+          <div className="flex items-center gap-4 shrink-0">
             {appState === "dashboard" && (
               <button
                 onClick={isPowerDialing ? () => setIsPowerDialing(false) : startPowerDialing}
-                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 border ${
-                  isPowerDialing 
-                    ? "bg-red-500/20 text-red-400 border-red-500/50 hover:bg-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.3)] animate-pulse" 
-                    : "bg-purple-500/10 text-purple-400 border-purple-500/30 hover:bg-purple-500/20 hover:border-purple-500/50"
-                }`}
+                className={isPowerDialing ? "btn-coral rounded-full" : "btn-ghost rounded-full bg-white"}
+                style={{ fontSize: 13, padding: "9px 18px", border: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.03)" }}
               >
-                <Phone className={`w-4 h-4 ${isPowerDialing ? "" : ""}`} />
-                {isPowerDialing ? "Stop Power Dialer" : "Start Power Dial"}
+                <Zap className="w-4 h-4" />
+                {isPowerDialing ? "Stop Dialer" : "Power Dial"}
               </button>
             )}
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-600" />
-              <input
-                type="text"
-                placeholder="⌘K  Search..."
-                className="bg-white/[0.03] border border-white/[0.06] rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-indigo-500/40 focus:bg-white/[0.05] transition-premium w-56 placeholder:text-gray-600"
-              />
+
+            <div className="flex items-center gap-2 bg-white rounded-full px-3 py-2 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-gray-100">
+              <button className="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                <Search className="w-5 h-5" />
+              </button>
+              <button className="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                <Bell className="w-5 h-5" />
+              </button>
+              <div className="w-[1px] h-6 bg-gray-200 mx-1"></div>
+              
+              <div className="flex items-center gap-3 pl-2 pr-4 cursor-pointer hover:opacity-80 transition-opacity">
+                <div className="w-9 h-9 rounded-full overflow-hidden border border-gray-200">
+                  <img src="https://ui-avatars.com/api/?name=Sales+Lead&background=FF5C39&color=fff&bold=true" alt="Profile" className="w-full h-full object-cover" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[13px] font-bold text-gray-900 leading-tight">Sales Lead</span>
+                  <span className="text-[11px] text-gray-500 font-medium leading-tight">sales@opencloser.ai</span>
+                </div>
+                <ChevronDown className="w-4 h-4 text-gray-400 ml-1" />
+              </div>
             </div>
-            <button 
-              onClick={() => setAppState("settings")}
-              className={`p-2 rounded-full transition-colors ${appState === "settings" ? "bg-white/10 text-emerald-400" : "hover:bg-white/5 text-gray-400"}`}
-            >
-              <Settings className="w-5 h-5" />
-            </button>
           </div>
-        )}
-      </header>
+        </header>
+      )}
 
-      {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        {(appState === "home" || appState === "dashboard" || appState === "hunter" || appState === "call_logs" || appState === "settings" || appState === "persona" || appState === "lead_detail") && (
-          <aside className="w-60 border-r border-white/[0.06] bg-[#0a0a0a] p-3 flex flex-col gap-0.5">
-            <div className="text-[10px] font-mono text-gray-600 uppercase tracking-[0.15em] mb-2 mt-1 px-3">
-              Operations
+      {/* ── Body: Sidebar + Main ── */}
+      <div className="flex flex-1 overflow-hidden relative">
+
+        {/* ── Icon Sidebar ── */}
+        {isAppShellVisible && (
+          <aside
+            className="flex flex-col items-center gap-4 py-8 shrink-0 relative z-40 bg-transparent"
+            style={{ width: 80 }}
+          >
+            {/* Top icons */}
+            <div className="flex flex-col items-center gap-3 flex-1 px-4">
+              {SIDEBAR_TOP.map((item) => (
+                <button
+                  key={item.state}
+                  title={item.label}
+                  onClick={() => setAppState(item.state as any)}
+                  className={`w-12 h-12 flex items-center justify-center rounded-full transition-all duration-200 cursor-pointer ${
+                    (appState === item.state || (item.state === "dashboard" && appState === "lead_detail"))
+                      ? "bg-gray-200 text-gray-900 shadow-sm"
+                      : "text-gray-400 hover:bg-gray-200 hover:text-gray-700 bg-transparent"
+                  }`}
+                >
+                  <item.icon className="w-5 h-5 stroke-[2.5px]" />
+                </button>
+              ))}
             </div>
-            <button
-              onClick={() => setAppState("home")}
-              className={`sidebar-item ${appState === "home" ? "active" : ""}`}
-            >
-              <Home className="w-4 h-4" />
-              HQ
-            </button>
-            <button
-              onClick={() => setAppState("dashboard")}
-              className={`sidebar-item ${appState === "dashboard" || appState === "lead_detail" ? "active" : ""}`}
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              Pipeline
-            </button>
-            <button
-              onClick={() => setAppState("call_logs")}
-              className={`sidebar-item ${appState === "call_logs" ? "active" : ""}`}
-            >
-              <Phone className="w-4 h-4" />
-              Call Intelligence
-            </button>
 
-            <div className="text-[10px] font-mono text-gray-600 uppercase tracking-[0.15em] mb-1 mt-4 px-3">
-              AI Team
-            </div>
-            <button
-              onClick={() => setAppState("hunter")}
-              className={`sidebar-item ${appState === "hunter" ? "active" : ""}`}
-            >
-              <Target className="w-4 h-4" />
-              Lead Researcher
-            </button>
-            <button
-              onClick={() => setAppState("persona")}
-              className={`sidebar-item ${appState === "persona" ? "active" : ""}`}
-            >
-              <Bot className="w-4 h-4" />
-              AI Caller
-            </button>
-            <button
-              onClick={() => setAppState("trainer")}
-              className={`sidebar-item ${appState === "trainer" ? "active" : ""}`}
-            >
-              <Swords className="w-4 h-4" />
-              Sales Coach
-            </button>
-
-            <div className="mt-auto pt-4">
+            {/* Bottom icons */}
+            <div className="flex flex-col items-center gap-3 px-4">
+              {/* New Campaign quick-add */}
               <button
                 onClick={() => setAppState("hunter")}
-                className="w-full flex items-center justify-center gap-2 bg-white text-black hover:bg-gray-200 py-3 rounded-xl transition-all duration-300 text-sm font-bold shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_30px_rgba(255,255,255,0.25)] hover:scale-[1.02] active:scale-95"
+                className="w-12 h-12 flex items-center justify-center rounded-full transition-all duration-200 cursor-pointer shadow-[0_4px_16px_rgba(255,92,57,0.3)] bg-[var(--accent-coral)] text-white hover:scale-105"
+                title="New Campaign"
               >
-                <Plus className="w-4 h-4" />
-                New Campaign
+                <Plus className="w-6 h-6 stroke-[3px]" />
               </button>
+              {SIDEBAR_BOTTOM.map((item) => (
+                <button
+                  key={item.state}
+                  title={item.label}
+                  onClick={() => setAppState(item.state as any)}
+                  className={`w-12 h-12 flex items-center justify-center rounded-full transition-all duration-200 cursor-pointer ${
+                    appState === item.state
+                      ? "bg-gray-200 text-gray-900"
+                      : "text-gray-400 hover:bg-gray-200 hover:text-gray-700 bg-transparent"
+                  }`}
+                >
+                  <item.icon className="w-5 h-5 stroke-[2.5px]" />
+                </button>
+              ))}
             </div>
           </aside>
         )}
 
-        {/* Main View Area */}
+        {/* ── Main View ── */}
         <main
-          className={`flex-1 overflow-y-auto overflow-x-hidden ${appState === "dashboard" ? "p-6" : appState === "home" ? "p-6 bg-[#0a0a0a]" : "p-0 bg-[#0a0a0a]"}`}
+          className="flex-1 overflow-y-auto overflow-x-hidden"
+          style={{
+            background: ["dashboard"].includes(appState) ? "var(--bg-primary)" : "var(--bg-primary)",
+            padding: appState === "dashboard" ? "24px" : "0",
+          }}
         >
           {appState === "onboarding" && (
             <Onboarding onComplete={handleOnboardingComplete} />
           )}
 
           {appState === "icp_review" && icpData && (
-            <ICPDisplay
-              icp={icpData}
-              onContinue={() => setAppState("home")}
-            />
+            <ICPDisplay icp={icpData} onContinue={() => setAppState("home")} />
           )}
 
           {appState === "audio_setup" && (
-            <AudioSetupWizard 
+            <AudioSetupWizard
               onComplete={() => {
                 if (!localStorage.getItem("ai_persona")) {
                   setAppState("persona_setup");
                 } else {
                   setAppState("home");
                 }
-              }} 
+              }}
             />
           )}
 
           {(appState === "persona" || appState === "persona_setup") && (
-            <AIPersonaBuilder 
+            <AIPersonaBuilder
               initialPersona={persona || undefined}
               onSave={(p) => {
                 setPersona(p);
                 localStorage.setItem("ai_persona", JSON.stringify(p));
                 addToast("success", "AI Persona successfully re-programmed.");
-                if (appState === "persona_setup") {
-                  setAppState("home");
-                }
+                if (appState === "persona_setup") setAppState("home");
               }}
             />
           )}
@@ -363,13 +396,9 @@ export function KanbanBoard() {
             />
           )}
 
-          {appState === "call_logs" && (
-            <CallLogsView />
-          )}
+          {appState === "call_logs" && <CallLogsView />}
 
-          {appState === "settings" && (
-            <SettingsView />
-          )}
+          {appState === "settings" && <SettingsView />}
 
           {appState === "home" && (
             <DashboardHome
@@ -386,36 +415,41 @@ export function KanbanBoard() {
 
           {appState === "dashboard" &&
             (loading ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-indigo-500/20 rounded-full blur-xl animate-pulse"></div>
-                  <div className="shimmer text-indigo-400 font-mono text-sm tracking-widest uppercase relative z-10">Initializing Pipeline...</div>
-                </div>
+              <div
+                className="flex items-center justify-center h-full"
+                style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: 13 }}
+              >
+                Loading pipeline…
               </div>
             ) : (
-              <div className="flex gap-6 h-full items-start flex-col">
+              <div className="flex gap-5 h-full items-start flex-col">
                 {/* Search & Filter Bar */}
                 <div className="flex items-center gap-3 w-full shrink-0">
                   <div className="relative flex-1 max-w-xs">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--text-muted)" }} />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search leads..."
-                      className="w-full bg-[#111] border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50"
+                      placeholder="Search leads…"
+                      className="input-field"
+                      style={{ paddingLeft: 40 }}
                     />
                   </div>
                   <div className="flex items-center gap-1">
-                    {[0, 70, 80, 90].map(score => (
+                    {[0, 70, 80, 90].map((score) => (
                       <button
                         key={score}
                         onClick={() => setScoreFilter(scoreFilter === score ? 0 : score)}
-                        className={`text-xs px-3 py-1.5 rounded-lg border font-mono transition-colors ${
-                          scoreFilter === score && score > 0
-                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                            : "bg-white/5 text-gray-500 border-white/5 hover:text-white"
-                        }`}
+                        className="btn-ghost"
+                        style={{
+                          fontSize: 12,
+                          padding: "6px 12px",
+                          fontFamily: "var(--font-mono)",
+                          background: scoreFilter === score && score > 0 ? "var(--accent-coral-light)" : undefined,
+                          borderColor: scoreFilter === score && score > 0 ? "var(--accent-coral-medium)" : undefined,
+                          color: scoreFilter === score && score > 0 ? "var(--accent-coral)" : undefined,
+                        }}
                       >
                         {score === 0 ? "All" : `${score}+`}
                       </button>
@@ -423,35 +457,34 @@ export function KanbanBoard() {
                   </div>
                 </div>
 
-                <div className="flex gap-6 flex-1 items-start w-full overflow-x-auto">
-                {COLUMNS.map((status) => (
-                  <KanbanColumn
-                    key={status}
-                    status={status}
-                    leads={leads.filter((l) => {
-                      const matchesSearch = !searchQuery || 
-                        l.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        l.company.toLowerCase().includes(searchQuery.toLowerCase());
-                      const matchesScore = l.score >= scoreFilter;
-                      return l.status === status && matchesSearch && matchesScore;
-                    })}
-                    onDragStart={handleDragStart}
-                    onDrop={handleDrop}
-                    onDragOver={handleDragOver}
-                    onDial={handleDial}
-                    onViewDetails={(lead) => {
-                      setSelectedLead(lead);
-                      setAppState("lead_detail");
-                    }}
-                  />
-                ))}
+                <div className="flex gap-5 flex-1 items-start w-full overflow-x-auto pb-2">
+                  {COLUMNS.map((status) => (
+                    <KanbanColumn
+                      key={status}
+                      status={status}
+                      leads={leads.filter((l) => {
+                        const matchesSearch =
+                          !searchQuery ||
+                          l.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          l.company.toLowerCase().includes(searchQuery.toLowerCase());
+                        const matchesScore = l.score >= scoreFilter;
+                        return l.status === status && matchesSearch && matchesScore;
+                      })}
+                      onDragStart={handleDragStart}
+                      onDrop={handleDrop}
+                      onDragOver={handleDragOver}
+                      onDial={handleDial}
+                      onViewDetails={(lead) => {
+                        setSelectedLead(lead);
+                        setAppState("lead_detail");
+                      }}
+                    />
+                  ))}
                 </div>
               </div>
             ))}
 
-          {appState === "trainer" && (
-            <ObjectionTrainer icp={icpData} />
-          )}
+          {appState === "trainer" && <ObjectionTrainer icp={icpData} />}
 
           {appState === "lead_detail" && selectedLead && (
             <LeadDetailView
@@ -461,11 +494,9 @@ export function KanbanBoard() {
                 setSelectedLead(null);
                 setAppState("dashboard");
               }}
-              onDial={(lead) => {
-                setActiveCallLead(lead);
-              }}
+              onDial={(lead) => setActiveCallLead(lead)}
               onDelete={(leadId) => {
-                setLeads(leads.filter(l => l.id !== leadId));
+                setLeads(leads.filter((l) => l.id !== leadId));
                 setSelectedLead(null);
                 setAppState("dashboard");
                 addToast("success", "Lead deleted successfully.");
@@ -473,8 +504,8 @@ export function KanbanBoard() {
               onStatusChange={async (leadId, newStatus) => {
                 try {
                   await invoke("update_lead_status", { id: leadId, status: newStatus });
-                  setLeads(leads.map(l => l.id === leadId ? { ...l, status: newStatus } : l));
-                  setSelectedLead(prev => prev ? { ...prev, status: newStatus } : prev);
+                  setLeads(leads.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l)));
+                  setSelectedLead((prev) => (prev ? { ...prev, status: newStatus } : prev));
                   addToast("success", `Lead moved to ${newStatus}.`);
                 } catch (err) {
                   console.error("Failed to update status:", err);
@@ -487,14 +518,10 @@ export function KanbanBoard() {
 
       {/* War Room Modal */}
       {activeCallLead && (
-        <WarRoom
-          lead={activeCallLead}
-          icp={icpData}
-          onClose={handleWarRoomClose}
-        />
+        <WarRoom lead={activeCallLead} icp={icpData} onClose={handleWarRoomClose} />
       )}
 
-      {/* Post-Call Debrief Modal */}
+      {/* Post-Call Debrief */}
       {debriefData && (
         <PostCallDebrief
           lead={debriefData.lead}

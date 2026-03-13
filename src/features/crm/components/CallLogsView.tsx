@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Phone, Clock, FileText, ChevronDown, ChevronUp, CheckCircle2, XCircle, BarChart3, TrendingUp, Timer, Voicemail } from "lucide-react";
+import { Phone, Clock, FileText, ChevronDown, CheckCircle2, XCircle, BarChart3, TrendingUp, Timer, Voicemail, ArrowUpRight, Search, MoreHorizontal } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 
 interface CallLog {
@@ -53,188 +53,202 @@ export function CallLogsView() {
   const totalTalkTime = logs.reduce((sum, l) => sum + l.duration_seconds, 0);
 
   return (
-    <div className="flex flex-col w-full max-w-6xl mx-auto py-10 px-4 lg:px-8 custom-scrollbar h-full overflow-y-auto">
+    <div className="flex flex-col w-full max-w-[1400px] mx-auto py-10 px-6 lg:px-10 custom-scrollbar h-full overflow-y-auto">
       
-      {/* Header */}
-      <div className="flex items-center gap-5 mb-10 animate-fade-in relative">
-         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[80px] rounded-full pointer-events-none"></div>
-        <div className="relative">
-           <div className="absolute -inset-2 bg-indigo-500/20 rounded-full blur-md animate-pulse"></div>
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-blue-500/20 flex items-center justify-center border border-indigo-500/30 relative z-10 glow-indigo">
-            <BarChart3 className="w-8 h-8 text-indigo-400" />
-          </div>
+      {/* ── Page Header ── */}
+      <div className="flex items-center gap-6 mb-10 animate-fade-in">
+        <div className="w-16 h-16 rounded-2xl bg-surface-bg flex items-center justify-center border border-surface-border shadow-sm">
+          <BarChart3 className="w-8 h-8 text-ink-secondary" />
         </div>
-        <div className="relative z-10">
-          <h2 className="text-3xl font-extrabold text-white tracking-tight">
+        <div>
+          <h2 className="text-[28px] font-bold text-ink tracking-tight">
             Call Intelligence Center
           </h2>
-          <p className="text-gray-400 text-sm mt-1.5 font-medium">
-            Your AI Sales Manager's performance report — metrics, transcripts, and outcomes.
+          <p className="text-ink-secondary text-sm mt-1 font-medium italic">
+            Telemetry data from autonomous sales execution sessions.
           </p>
         </div>
       </div>
 
-      {/* Analytics Dashboard */}
+      {/* ── Performance Grid ── */}
       {!loading && logs.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 stagger-children relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 stagger-children">
           
-          <div className="glass-card rounded-3xl p-6 flex flex-col relative overflow-hidden group">
-            <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/5 blur-xl rounded-full group-hover:bg-white/10 transition-colors duration-500 pointer-events-none"></div>
-            <div className="flex items-center gap-2 text-[11px] text-gray-500 mb-4 font-mono uppercase tracking-[0.15em] relative z-10">
-              <Phone className="w-3.5 h-3.5" /> Total Invocations
-            </div>
-            <div className="text-4xl font-extrabold text-white tabular-nums tracking-tight relative z-10">{totalCalls}</div>
-            <div className="text-[12px] text-gray-500 mt-2 font-medium relative z-10">{formatDuration(totalTalkTime)} cumulative duration</div>
+          <div className="card-coral p-6 h-[160px] flex flex-col justify-between group">
+             <div className="flex items-center justify-between">
+                <div className="stat-label text-white/80">Success Rate</div>
+                <TrendingUp className="w-5 h-5 text-white" />
+             </div>
+             <div>
+                <div className="text-[42px] font-extrabold text-white leading-none">{successRate}%</div>
+                <div className="text-[11px] text-white/70 font-bold uppercase tracking-wider mt-2">Conversion Vector</div>
+             </div>
           </div>
           
-          <div className="glass-card rounded-3xl p-6 flex flex-col border-emerald-500/20 relative overflow-hidden group hover:border-emerald-500/40 transition-colors duration-500">
-             <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 blur-xl pointer-events-none group-hover:opacity-100 opacity-50 transition-opacity duration-1000"></div>
-            <div className="flex items-center gap-2 text-[11px] text-emerald-400 mb-4 font-mono uppercase tracking-[0.15em] relative z-10">
-              <TrendingUp className="w-3.5 h-3.5" /> Conversion Rate
-            </div>
-            <div className="text-4xl font-extrabold text-emerald-400 tabular-nums tracking-tight relative z-10">{successRate}%</div>
-            <div className="text-[12px] text-gray-500 mt-2 font-medium relative z-10 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50"></span>
-              {successCalls} successful engagements
-            </div>
+          <div className="card p-6 h-[160px] flex flex-col justify-between group hover:border-ink-secondary/20 transition-smooth">
+             <div className="flex items-center justify-between">
+                <div className="stat-label">Total Calls</div>
+                <Phone className="w-5 h-5 text-ink-secondary" />
+             </div>
+             <div>
+                <div className="text-[42px] font-extrabold text-ink leading-none">{totalCalls}</div>
+                <div className="text-[11px] text-ink-secondary font-bold uppercase tracking-wider mt-2">Dials Executed</div>
+             </div>
           </div>
 
-          <div className="glass-card rounded-3xl p-6 flex flex-col relative overflow-hidden group">
-            <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/5 blur-xl rounded-full group-hover:bg-white/10 transition-colors duration-500 pointer-events-none"></div>
-            <div className="flex items-center gap-2 text-[11px] text-gray-500 mb-4 font-mono uppercase tracking-[0.15em] relative z-10">
-              <Timer className="w-3.5 h-3.5" /> Mean Duration
-            </div>
-            <div className="text-4xl font-extrabold text-white tabular-nums tracking-tight relative z-10">{formatDuration(avgDuration)}</div>
-            <div className="text-[12px] text-gray-500 mt-2 font-medium relative z-10">active acoustic connection</div>
+          <div className="card p-6 h-[160px] flex flex-col justify-between group hover:border-ink-secondary/20 transition-smooth">
+             <div className="flex items-center justify-between">
+                <div className="stat-label">Avg Duration</div>
+                <Timer className="w-5 h-5 text-ink-secondary" />
+             </div>
+             <div>
+                <div className="text-[42px] font-extrabold text-ink leading-none">{formatDuration(avgDuration)}</div>
+                <div className="text-[11px] text-ink-secondary font-bold uppercase tracking-wider mt-2">Acoustic Connection</div>
+             </div>
           </div>
 
-          <div className="glass-card rounded-3xl p-6 flex flex-col relative overflow-hidden">
-            <div className="flex items-center gap-2 text-[11px] text-gray-500 mb-5 font-mono uppercase tracking-[0.15em]">
-              <BarChart3 className="w-3.5 h-3.5" /> Outcome Distribution
+          <div className="card p-6 flex flex-col justify-between group">
+            <div className="stat-label mb-4">Outcome Spread</div>
+            <div className="flex gap-1.5 h-3 rounded-full overflow-hidden mb-5 bg-surface-bg border border-surface-border p-0.5">
+              {successCalls > 0 && <div className="bg-coral rounded-full" style={{ flex: successCalls }}></div>}
+              {voicemailCalls > 0 && <div className="bg-ink rounded-full" style={{ flex: voicemailCalls }}></div>}
+              {rejectedCalls > 0 && <div className="bg-ink-faint rounded-full" style={{ flex: rejectedCalls }}></div>}
             </div>
-            <div className="flex gap-1 h-2.5 rounded-full overflow-hidden mb-4 shadow-inner bg-black/50">
-              {successCalls > 0 && <div className="bg-gradient-to-r from-emerald-500 to-emerald-400" style={{ flex: successCalls }}></div>}
-              {voicemailCalls > 0 && <div className="bg-gradient-to-r from-yellow-500 to-yellow-400" style={{ flex: voicemailCalls }}></div>}
-              {rejectedCalls > 0 && <div className="bg-gradient-to-r from-red-500 to-red-400" style={{ flex: rejectedCalls }}></div>}
-            </div>
-            <div className="flex justify-between text-[11px] text-gray-400 font-medium">
-              <span className="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">{successCalls} ✓</span>
-              <span className="text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/20">{voicemailCalls} VM</span>
-              <span className="text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">{rejectedCalls} ✗</span>
+            <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-ink-secondary">
+              <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-coral"></div> {successCalls} Success</span>
+              <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-ink"></div> {voicemailCalls} VM</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Logs List */}
-      <h3 className="text-xl font-bold text-white tracking-tight mb-6 animate-fade-in relative z-10">Chronological Record</h3>
+      {/* ── Historical Logs ── */}
+      <div className="flex items-center justify-between mb-6">
+         <h3 className="text-xl font-bold text-ink tracking-tight transition-smooth">Chronological Record</h3>
+         <div className="flex items-center gap-3">
+            <div className="relative">
+               <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+               <input 
+                  type="text" 
+                  placeholder="Filter logs…"
+                  className="bg-white border border-surface-border rounded-lg pl-9 pr-4 py-1.5 text-xs outline-none focus:ring-1 focus:ring-coral/20 w-48 font-bold" 
+               />
+            </div>
+         </div>
+      </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64 relative z-10">
-           <div className="relative">
-              <div className="absolute inset-0 bg-indigo-500/20 rounded-full blur-xl animate-pulse"></div>
-              <div className="shimmer text-indigo-400 font-mono text-sm tracking-widest uppercase relative z-10">Retrieving Logs...</div>
-           </div>
+        <div className="flex flex-col items-center justify-center h-64">
+           <div className="w-10 h-10 border-2 border-surface-border border-t-coral rounded-full animate-spin"></div>
+           <div className="mt-4 text-[13px] font-bold text-ink-secondary uppercase tracking-[0.2em]">Synchronizing Archives</div>
         </div>
       ) : logs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 text-gray-500 glass-card rounded-3xl relative z-10 border border-white/[0.05]">
-          <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/10">
-            <Phone className="w-8 h-8 opacity-40" />
+        <div className="card p-16 flex flex-col items-center justify-center text-center opacity-70">
+          <div className="w-16 h-16 rounded-2xl bg-surface-bg flex items-center justify-center mb-6">
+            <Phone className="w-8 h-8 text-ink-muted" />
           </div>
-          <p className="font-medium">Telemetry database vacant. Initiate connection sequence.</p>
+          <p className="font-bold text-ink-secondary text-base italic">The telemetry vault is currently vacant.</p>
+          <p className="text-ink-muted text-[13px] mt-1 font-medium max-w-xs mx-auto">Start a campaign to record autonomous execution metrics.</p>
         </div>
       ) : (
-        <div className="space-y-4 relative z-10 pb-10">
+        <div className="space-y-4 pb-12">
           {logs.map((log) => {
             const isExpanded = expandedLogId === log.id;
             let transcriptData: any[] = [];
             try {
                transcriptData = JSON.parse(log.transcript);
-            } catch (e) {
-               // Fallback
-            }
+            } catch (e) {}
             
             return (
-              <div key={log.id} className={`glass-card rounded-[2rem] overflow-hidden transition-all duration-300 ${isExpanded ? 'border-white/[0.1] shadow-2xl shadow-indigo-900/10' : 'hover:border-white/[0.08] hover:-translate-y-0.5'}`}>
+              <div key={log.id} className={`card overflow-hidden transition-smooth ${isExpanded ? 'ring-2 ring-coral/10 shadow-xl' : 'hover:border-ink-secondary/20 hover:shadow-card-hover'}`}>
                 <div 
-                  className={`flex items-center justify-between p-6 md:p-8 cursor-pointer relative overflow-hidden group ${isExpanded ? 'bg-white/[0.02]' : ''}`}
+                  className={`flex flex-wrap md:flex-nowrap items-center justify-between p-6 cursor-pointer bg-white transition-colors duration-200 ${isExpanded ? 'bg-surface-hover/30' : ''}`}
                   onClick={() => toggleExpand(log.id)}
                 >
-                  {isExpanded && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>}
-                  
-                  <div className="flex items-center gap-6 md:gap-8 relative z-10">
-                    <div className="flex flex-col">
-                      <span className="text-base font-bold text-white tracking-tight">{log.lead_name || 'Unknown Entity'}</span>
-                      <span className="text-sm text-gray-400 mt-1">{log.lead_company || 'Unspecified Org'}</span>
+                  <div className="flex items-center gap-6 flex-1 min-w-0">
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[17px] font-bold text-ink tracking-tight truncate">{log.lead_name || 'Unknown Identity'}</span>
+                      <span className="text-[11px] font-bold text-ink-secondary uppercase tracking-[0.15em] mt-1 truncate">{log.lead_company || 'External Entity'}</span>
                     </div>
                     
-                    <div className="hidden sm:flex items-center gap-6">
-                      <div className="flex items-center gap-2 text-[13px] font-mono text-gray-300 bg-white/[0.03] px-3.5 py-2 rounded-xl border border-white/[0.05]">
-                        <Clock className="w-3.5 h-3.5 text-gray-500" />
-                        {formatDuration(log.duration_seconds)}
+                    <div className="hidden md:flex items-center gap-6 ml-6 border-l border-surface-border pl-6">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold text-ink-muted uppercase tracking-widest mb-0.5">Duration</span>
+                        <div className="flex items-center gap-1.5 text-sm font-bold text-ink-secondary font-mono">
+                          <Timer className="w-4 h-4" />
+                          {formatDuration(log.duration_seconds)}
+                        </div>
                       </div>
-                      <div className="hidden lg:flex items-center gap-2 text-[13px] text-gray-400">
-                         <FileText className="w-4 h-4 text-gray-600" />
-                         {new Date(log.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      <div className="flex flex-col">
+                         <span className="text-[10px] font-bold text-ink-muted uppercase tracking-widest mb-0.5">Recorded At</span>
+                         <div className="flex items-center gap-1.5 text-sm font-bold text-ink-secondary">
+                            <Clock className="w-4 h-4" />
+                            {new Date(log.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-5 relative z-10">
-                    <span className={`flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-xl border uppercase tracking-wider ${
-                       log.status === "Success" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" : 
-                       log.status === "Voicemail" ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30" : 
-                       "bg-red-500/10 text-red-400 border-red-500/30"
+                  <div className="flex items-center gap-5 mt-4 md:mt-0">
+                    <span className={`badge px-4 py-2 font-bold uppercase tracking-widest text-[11px] ${
+                       log.status === "Success" ? "badge-success" : 
+                       log.status === "Voicemail" ? "badge-pending" : "badge-error"
                     }`}>
-                      {log.status === "Success" ? <CheckCircle2 className="w-3.5 h-3.5"/> : log.status === "Voicemail" ? <Voicemail className="w-3.5 h-3.5"/> : <XCircle className="w-3.5 h-3.5"/>}
                       {log.status}
                     </span>
-                    <div className={`w-8 h-8 rounded-full border border-white/10 flex items-center justify-center transition-transform duration-300 ${isExpanded ? 'bg-white/10 rotate-180' : 'bg-white/5 group-hover:bg-white/10'}`}>
-                      <ChevronDown className={`w-4 h-4 text-gray-400 ${isExpanded ? 'text-white' : ''}`} />
+                    <div className={`p-2 rounded-lg border border-surface-border transition-smooth shadow-sm ${isExpanded ? 'bg-ink text-white rotate-180' : 'bg-surface-bg text-ink-secondary hover:text-ink'}`}>
+                      <ChevronDown className="w-4 h-4" />
                     </div>
                   </div>
                 </div>
 
                 {isExpanded && (
-                  <div className="border-t border-white/[0.05] bg-[#030303] p-6 md:p-8 animate-slide-in-up relative">
-                     <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-[60px] rounded-full pointer-events-none"></div>
-                    
-                    <div className="flex items-center justify-between mb-6 relative z-10">
-                      <h4 className="text-[11px] font-mono text-indigo-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
-                        Acoustic Transcription Matrix
-                      </h4>
+                  <div className="border-t border-surface-border bg-surface-bg/20 p-8 animate-fade-in">
+                    <div className="flex items-center justify-between mb-8 pb-4 border-b border-surface-border/50">
+                      <div className="flex items-center gap-3">
+                         <div className="w-2.5 h-2.5 rounded-full bg-coral shadow-[0_0_8px_rgba(232,75,26,0.3)]"></div>
+                         <h4 className="text-[12px] font-bold text-ink uppercase tracking-[0.15em]">Execution Transcript</h4>
+                      </div>
+                      <button className="text-[11px] font-bold text-ink-secondary hover:text-coral transition-colors flex items-center gap-1.5">
+                         Download Intelligence
+                         <ArrowUpRight className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                     
                     {Array.isArray(transcriptData) && transcriptData.length > 0 ? (
-                       <div className="space-y-5 max-h-[500px] overflow-y-auto pr-4 custom-scrollbar relative z-10">
+                       <div className="space-y-6 max-h-[500px] overflow-y-auto pr-4 custom-scrollbar">
                           {transcriptData.map((entry, idx) => (
                             <div key={idx} className={`flex gap-4 ${entry.role === 'user' ? 'justify-end' : ''}`}>
                               {entry.role === 'model' && (
-                                <div className="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0 mt-1 shadow-lg shadow-indigo-500/10">
-                                   <div className="text-indigo-400 text-[10px] font-bold">AI</div>
+                                <div className="w-9 h-9 rounded-xl bg-coral flex items-center justify-center shrink-0 mt-1 shadow-coral overflow-hidden">
+                                   <div className="text-white text-[11px] font-black uppercase">AI</div>
                                 </div>
                               )}
-                               <div className={`max-w-[80%] lg:max-w-[70%] px-5 py-4 text-[15px] leading-relaxed relative ${
+                               <div className={`max-w-[80%] lg:max-w-[70%] px-5 py-4 text-[15px] leading-relaxed shadow-sm transform transition-all hover:scale-[1.01] ${
                                   entry.role === 'user' 
-                                  ? 'bg-gradient-to-br from-indigo-600/30 to-blue-600/30 text-indigo-50 border border-indigo-500/30 rounded-3xl rounded-tr-sm shadow-lg shadow-indigo-900/20' 
-                                  : 'bg-[#0a0a0a] text-gray-200 border border-white/10 rounded-3xl rounded-tl-sm shadow-lg'
+                                  ? 'bg-ink text-white rounded-2xl rounded-tr-sm font-medium' 
+                                  : 'bg-white text-ink border border-surface-border rounded-2xl rounded-tl-sm font-medium'
                                }`}>
                                   {entry.text}
                                </div>
                                {entry.role === 'user' && (
-                                <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 mt-1">
-                                   <div className="text-gray-400 text-[10px] font-bold uppercase">{log.lead_name?.charAt(0) || 'U'}</div>
+                                <div className="w-9 h-9 rounded-xl bg-white border border-surface-border flex items-center justify-center shrink-0 mt-1 shadow-sm">
+                                   <div className="text-ink-secondary text-[11px] font-black uppercase tracking-widest">{log.lead_name?.charAt(0) || 'U'}</div>
                                 </div>
                                )}
                             </div>
                           ))}
                        </div>
                     ) : (
-                       <div className="text-[14px] text-gray-500 italic bg-white/[0.02] border border-white/[0.05] rounded-2xl p-6 text-center relative z-10">
-                         No readable acoustic data detected for this session.
+                       <div className="text-[14px] text-ink-muted italic bg-white border border-surface-border rounded-2xl p-10 text-center font-medium shadow-sm">
+                         No audible telemetry detected for this session.
                        </div>
                     )}
+
+                    <div className="mt-8 flex items-center gap-4 justify-center">
+                       <button className="btn-dark py-2.5 px-8 font-bold text-[13px]">Review session</button>
+                       <button className="btn-ghost py-2.5 px-8 font-bold text-[13px]">Flag for training</button>
+                    </div>
                   </div>
                 )}
               </div>

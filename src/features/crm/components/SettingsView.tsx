@@ -1,187 +1,257 @@
 import React, { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Mic, Volume2, Info, CheckCircle2 } from "lucide-react";
+import {
+  Settings as SettingsIcon, Mic, Volume2, Info, CheckCircle2,
+  ChevronDown, Sliders, Key, Eye, EyeOff, CheckCheck, AlertTriangle, Zap
+} from "lucide-react";
+import { PROVIDERS, ProviderId } from "../../voice/lib/providers";
 
 export function SettingsView() {
+  // Audio devices
   const [mics, setMics] = useState<MediaDeviceInfo[]>([]);
   const [speakers, setSpeakers] = useState<MediaDeviceInfo[]>([]);
-  const [selectedMic, setSelectedMic] = useState<string>("");
-  const [selectedSpeaker, setSelectedSpeaker] = useState<string>("");
+  const [selectedMic, setSelectedMic] = useState("");
+  const [selectedSpeaker, setSelectedSpeaker] = useState("");
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
 
+  // API Keys
+  const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
+  const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
-    // We need to request permission first so device labels aren't empty strings
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then((stream) => {
         setPermissionGranted(true);
         navigator.mediaDevices.enumerateDevices().then((devices) => {
-          setMics(devices.filter((d) => d.kind === "audioinput"));
-          setSpeakers(devices.filter((d) => d.kind === "audiooutput"));
-
+          setMics(devices.filter(d => d.kind === "audioinput"));
+          setSpeakers(devices.filter(d => d.kind === "audiooutput"));
           const savedMic = localStorage.getItem("preferredMicId");
           const savedSpeaker = localStorage.getItem("preferredSpeakerId");
-
           if (savedMic) setSelectedMic(savedMic);
           if (savedSpeaker) setSelectedSpeaker(savedSpeaker);
-
-          // Stop the test stream immediately
-          stream.getTracks().forEach((t) => t.stop());
+          stream.getTracks().forEach(t => t.stop());
         });
       })
-      .catch((e) => {
-        console.error("Could not get media permissions", e);
+      .catch(console.error);
+
+    // Load stored API keys
+    const stored: Record<string, string> = {};
+    PROVIDERS.forEach(p => {
+      stored[p.apiKeySettingKey] = localStorage.getItem(p.apiKeySettingKey) || "";
+      p.extraSettings?.forEach(s => {
+        stored[s.key] = localStorage.getItem(s.key) || "";
       });
+    });
+    setApiKeys(stored);
   }, []);
 
-  const showSavedMessage = (msg: string) => {
+  const showSaved = (msg: string) => {
     setSavedMessage(msg);
     setTimeout(() => setSavedMessage(null), 3000);
   };
 
-  const saveMic = (id: string) => {
-    setSelectedMic(id);
-    localStorage.setItem("preferredMicId", id);
-    showSavedMessage("Input routing updated");
+  const saveMic = (id: string) => { setSelectedMic(id); localStorage.setItem("preferredMicId", id); showSaved("Mic updated"); };
+  const saveSpeaker = (id: string) => { setSelectedSpeaker(id); localStorage.setItem("preferredSpeakerId", id); showSaved("Speaker updated"); };
+
+  const saveApiKey = (storageKey: string, value: string) => {
+    setApiKeys(prev => ({ ...prev, [storageKey]: value }));
+    localStorage.setItem(storageKey, value);
+    showSaved("API key saved");
   };
 
-  const saveSpeaker = (id: string) => {
-    setSelectedSpeaker(id);
-    localStorage.setItem("preferredSpeakerId", id);
-    showSavedMessage("Output routing updated");
+  const toggleShowKey = (key: string) => {
+    setShowKeys(prev => ({ ...prev, [key]: !prev[key] }));
   };
+
+  const hasKey = (storageKey: string) => !!(apiKeys[storageKey]?.trim());
 
   return (
-    <div className="flex flex-col w-full max-w-5xl mx-auto py-10 px-4 lg:px-8 custom-scrollbar h-full overflow-y-auto">
-      
+    <div className="flex flex-col w-full max-w-5xl mx-auto py-10 px-6 lg:px-10 h-full overflow-y-auto custom-scrollbar animate-fade-in">
+
       {/* Header */}
-      <div className="flex items-center justify-between mb-10 animate-fade-in">
+      <div className="flex items-center justify-between mb-10">
         <div className="flex items-center gap-5">
-          <div className="relative">
-             <div className="absolute -inset-2 bg-indigo-500/20 rounded-full blur-md animate-pulse"></div>
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 flex items-center justify-center border border-indigo-500/30 relative z-10 glow-indigo">
-              <SettingsIcon className="w-8 h-8 text-indigo-400" />
-            </div>
+          <div className="w-14 h-14 rounded-2xl bg-surface-bg flex items-center justify-center border border-surface-border shadow-sm">
+            <SettingsIcon className="w-7 h-7 text-coral" />
           </div>
           <div>
-            <h2 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
-              System Configurations
-            </h2>
-            <p className="text-gray-400 text-sm mt-1.5 font-medium">
-              Hardware routing and operational parameters for intelligence cores.
-            </p>
+            <h2 className="text-2xl font-bold tracking-tight text-ink">System Configuration</h2>
+            <p className="text-ink-secondary text-sm mt-1 font-medium">Voice engine API keys, hardware routing, and audio settings.</p>
           </div>
         </div>
-
         {savedMessage && (
-          <div className="hidden md:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-2 rounded-xl text-sm font-medium animate-fade-in absolute top-10 right-8 lg:right-12">
-            <CheckCircle2 className="w-4 h-4" />
-            {savedMessage}
+          <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold px-4 py-2 rounded-xl text-xs uppercase tracking-widest animate-fade-in">
+            <CheckCircle2 className="w-4 h-4" /> {savedMessage}
           </div>
         )}
       </div>
 
-      <div className="space-y-8 pb-10">
-        {/* Audio Routing Section */}
-        <section className="glass-card rounded-3xl p-8 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/5 blur-[120px] rounded-full group-hover:bg-blue-500/10 transition-colors duration-1000 pointer-events-none"></div>
-          
-          <h3 className="flex items-center gap-2 text-[11px] font-mono text-gray-400 uppercase tracking-[0.15em] mb-6 relative z-10">
-            <SettingsIcon className="w-4 h-4 text-gray-500" /> Audio Hardware Architecture
+      <div className="space-y-8 pb-16">
+
+        {/* ── Voice Engine API Keys ── */}
+        <section className="card p-8">
+          <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink-muted flex items-center gap-2 mb-2">
+            <Key className="w-4 h-4 text-coral" /> Voice Engine API Keys
+          </h3>
+          <p className="text-ink-muted text-sm mb-6 font-medium">
+            Keys are stored locally in your browser. Never sent to any server.
+          </p>
+
+          <div className="space-y-6">
+            {PROVIDERS.map(provider => (
+              <div key={provider.id} className="rounded-2xl border border-surface-border overflow-hidden">
+                {/* Provider Header */}
+                <div className="flex items-center gap-3 bg-surface-bg px-6 py-4 border-b border-surface-border">
+                  <span className="text-xl">{provider.id === "gemini" ? "🧠" : provider.id === "openai" ? "⚡" : "🎤"}</span>
+                  <div className="flex-1">
+                    <span className="text-sm font-bold text-ink">{provider.label}</span>
+                    <span className="text-[11px] text-ink-muted ml-2">{provider.model}</span>
+                  </div>
+                  <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold border ${
+                    hasKey(provider.apiKeySettingKey)
+                      ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                      : "bg-surface-bg border-surface-border text-ink-muted"
+                  }`}>
+                    {hasKey(provider.apiKeySettingKey)
+                      ? <><CheckCheck className="w-3 h-3" /> Configured</>
+                      : <><AlertTriangle className="w-3 h-3" /> Not Set</>
+                    }
+                  </div>
+                </div>
+
+                {/* Key Inputs */}
+                <div className="p-6 space-y-4">
+                  {/* Primary API Key */}
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-widest text-ink-muted block mb-2">
+                      {provider.apiKeyLabel}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showKeys[provider.apiKeySettingKey] ? "text" : "password"}
+                        value={apiKeys[provider.apiKeySettingKey] || ""}
+                        onChange={e => setApiKeys(prev => ({ ...prev, [provider.apiKeySettingKey]: e.target.value }))}
+                        onBlur={e => saveApiKey(provider.apiKeySettingKey, e.target.value)}
+                        placeholder={`${provider.id === "gemini" ? "AIza..." : provider.id === "openai" ? "sk-..." : "xi_..."}`}
+                        className="w-full bg-surface-bg border border-surface-border rounded-xl px-4 py-3 text-sm font-mono text-ink focus:outline-none focus:border-coral/30 pr-10"
+                      />
+                      <button
+                        onClick={() => toggleShowKey(provider.apiKeySettingKey)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink transition-smooth"
+                      >
+                        {showKeys[provider.apiKeySettingKey] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Extra Settings (e.g. ElevenLabs Agent ID) */}
+                  {provider.extraSettings?.map(extra => (
+                    <div key={extra.key}>
+                      <label className="text-[11px] font-bold uppercase tracking-widest text-ink-muted block mb-2">{extra.label}</label>
+                      <div className="relative">
+                        <input
+                          type={showKeys[extra.key] ? "text" : "password"}
+                          value={apiKeys[extra.key] || ""}
+                          onChange={e => setApiKeys(prev => ({ ...prev, [extra.key]: e.target.value }))}
+                          onBlur={e => saveApiKey(extra.key, e.target.value)}
+                          placeholder={extra.placeholder}
+                          className="w-full bg-surface-bg border border-surface-border rounded-xl px-4 py-3 text-sm font-mono text-ink focus:outline-none focus:border-coral/30 pr-10"
+                        />
+                        <button
+                          onClick={() => toggleShowKey(extra.key)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink"
+                        >
+                          {showKeys[extra.key] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {!provider.requiresRelay && (
+                    <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1.5">
+                      <Zap className="w-3 h-3" /> Direct browser connection — no server relay needed.
+                    </p>
+                  )}
+                  {provider.requiresRelay && (
+                    <p className="text-[11px] text-amber-600 font-medium flex items-center gap-1.5">
+                      <Info className="w-3 h-3" /> Routes through local Express relay (port 3000). Key stays on your machine.
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Audio Hardware ── */}
+        <section className="card p-8">
+          <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink-muted flex items-center gap-2 mb-5">
+            <Sliders className="w-4 h-4 text-coral" /> Hardware Architecture
           </h3>
 
-          {/* Educational Note */}
-          <div className="mb-8 relative z-10 group/note overflow-hidden rounded-2xl">
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/5 transition-opacity group-hover/note:opacity-80"></div>
-            <div className="relative bg-[#0a0a0a]/50 p-6 backdrop-blur-sm border border-indigo-500/20 rounded-2xl flex gap-4 text-sm text-indigo-100/80 leading-relaxed shadow-lg">
-              <div className="w-10 h-10 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0 mt-1 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
-                <Info className="w-5 h-5 text-indigo-400" />
+          {/* Virtual Cable Info */}
+          <div className="mb-7 p-5 rounded-xl bg-coral-light border border-coral/10">
+            <div className="flex gap-4">
+              <div className="w-10 h-10 rounded-xl bg-white border border-coral/20 flex items-center justify-center shrink-0">
+                <Info className="w-5 h-5 text-coral" />
               </div>
               <div>
-                <strong className="text-indigo-300 text-base mb-1 block">Virtual Audio Routing Required for Native Calls</strong>
-                To pass AI audio securely into <strong className="text-white font-medium">Phone Link</strong> or <strong className="text-white font-medium">FaceTime</strong>, a Virtual Audio Cable (VB-Cable or BlackHole) must be actively routed. <br /><br />
-                <span className="inline-block bg-black/40 px-3 py-1.5 rounded-lg border border-white/5 mt-1 font-mono text-xs text-indigo-200">
-                  <span className="text-indigo-400 font-bold">Protocol:</span> Set "CABLE Input" as Output below. Set "CABLE Output" as Input. Replicate in target calling app.
-                </span>
+                <h4 className="font-bold text-ink mb-1">Virtual Audio Routing</h4>
+                <p className="text-ink-secondary text-sm leading-relaxed font-medium">
+                  For AI audio injection into Phone Link or FaceTime, use a virtual audio cable.
+                  Set <span className="font-bold text-ink">Output</span>: CABLE Input · <span className="font-bold text-ink">Input</span>: CABLE Output
+                </p>
               </div>
             </div>
           </div>
 
           {!permissionGranted && (
-            <div className="text-red-400 text-sm p-4 bg-red-500/10 rounded-xl mb-6 relative z-10 flex items-center gap-3 border border-red-500/20">
-               <Info className="w-5 h-5 shrink-0" />
-               Hardware access restricted. Please grant microphone permissions to index available audio devices.
+            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-xl mb-6">
+              <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+              <p className="text-red-700 text-sm font-bold">Grant microphone permission to configure audio devices.</p>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-            {/* Input (Microphone) Selection */}
-            <div className="bg-white/[0.01] border border-white/[0.05] rounded-2xl p-6 hover:border-emerald-500/30 transition-colors duration-300 relative overflow-hidden group/input">
-              <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500/50 to-transparent transform origin-left scale-x-0 group-hover/input:scale-x-100 transition-transform duration-500"></div>
-              
-              <label className="flex items-center gap-3 text-sm font-semibold text-white mb-4">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                  <Mic className="w-4 h-4 text-emerald-400" />
-                </div>
-                Telemetry Input (Microphone)
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-[11px] font-bold text-ink-muted uppercase tracking-widest">
+                <Mic className="w-4 h-4 text-coral" /> Microphone Input
               </label>
-              
               <div className="relative">
-                <select
-                  value={selectedMic}
-                  onChange={(e) => saveMic(e.target.value)}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-4 text-sm text-gray-200 focus:outline-none focus:border-emerald-500/50 transition-premium appearance-none relative z-10"
-                >
-                  <option value="">System Default Audio Source</option>
-                  {mics.map((mic) => (
-                    <option key={mic.deviceId} value={mic.deviceId}>
-                      {mic.label || `Audio Input (${mic.deviceId.slice(0, 8)}...)`}
-                    </option>
-                  ))}
+                <select value={selectedMic} onChange={e => saveMic(e.target.value)}
+                  className="w-full bg-surface-bg border border-surface-border rounded-xl px-4 py-3 text-sm font-bold text-ink appearance-none hover:border-coral/20 focus:outline-none focus:border-coral/30">
+                  <option value="">System Default</option>
+                  {mics.map(m => <option key={m.deviceId} value={m.deviceId}>{m.label || `Input (${m.deviceId.slice(0, 8)}...)`}</option>)}
                 </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none z-20">
-                  <SettingsIcon className="w-4 h-4 text-gray-500" />
-                </div>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-ink-muted w-4 h-4" />
               </div>
-              
-              <p className="text-xs text-gray-500 mt-3 flex items-center gap-2">
-                 <span className="w-1 h-1 rounded-full bg-emerald-500/50"></span>
-                 Acoustic capture stream for processing external signals (Prospect voice).
-              </p>
             </div>
-
-            {/* Output (Speaker) Selection */}
-            <div className="bg-white/[0.01] border border-white/[0.05] rounded-2xl p-6 hover:border-blue-500/30 transition-colors duration-300 relative overflow-hidden group/output">
-              <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/50 to-transparent transform origin-left scale-x-0 group-hover/output:scale-x-100 transition-transform duration-500"></div>
-              
-              <label className="flex items-center gap-3 text-sm font-semibold text-white mb-4">
-                 <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                  <Volume2 className="w-4 h-4 text-blue-400" />
-                </div>
-                Synthetic Output (Speaker)
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-[11px] font-bold text-ink-muted uppercase tracking-widest">
+                <Volume2 className="w-4 h-4 text-coral" /> Speaker / Output
               </label>
-              
               <div className="relative">
-                <select
-                  value={selectedSpeaker}
-                  onChange={(e) => saveSpeaker(e.target.value)}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-4 text-sm text-gray-200 focus:outline-none focus:border-blue-500/50 transition-premium appearance-none relative z-10"
-                >
-                  <option value="">System Default Output</option>
-                  {speakers.map((speaker) => (
-                    <option key={speaker.deviceId} value={speaker.deviceId}>
-                      {speaker.label || `Audio Output (${speaker.deviceId.slice(0, 8)}...)`}
-                    </option>
-                  ))}
+                <select value={selectedSpeaker} onChange={e => saveSpeaker(e.target.value)}
+                  className="w-full bg-surface-bg border border-surface-border rounded-xl px-4 py-3 text-sm font-bold text-ink appearance-none hover:border-coral/20 focus:outline-none focus:border-coral/30">
+                  <option value="">System Default</option>
+                  {speakers.map(s => <option key={s.deviceId} value={s.deviceId}>{s.label || `Output (${s.deviceId.slice(0, 8)}...)`}</option>)}
                 </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none z-20">
-                  <SettingsIcon className="w-4 h-4 text-gray-500" />
-                </div>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-ink-muted w-4 h-4" />
               </div>
-              
-              <p className="text-xs text-gray-500 mt-3 flex items-center gap-2">
-                 <span className="w-1 h-1 rounded-full bg-blue-500/50"></span>
-                 Neural voice broadcast channel. Route to Virtual Cable for outbound dialing.
-              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Audio Engine Info */}
+        <section className="card p-6">
+          <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink-muted flex items-center gap-2 mb-3">
+            <Zap className="w-4 h-4 text-coral" /> Audio Engine
+          </h3>
+          <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-xl px-5 py-3.5">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            <div>
+              <div className="text-sm font-bold text-emerald-800">AudioWorklet Engine Active</div>
+              <div className="text-xs text-emerald-600">Zero-latency PCM capture via dedicated audio thread (~10ms). No ScriptProcessorNode.</div>
             </div>
           </div>
         </section>

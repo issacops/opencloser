@@ -10,6 +10,17 @@ import {
   BarChart3,
   Activity,
   ArrowUpRight,
+  MoreHorizontal,
+  Plus,
+  Filter,
+  Search,
+  Briefcase,
+  Wallet,
+  ArrowRightLeft,
+  ArrowDownToLine,
+  CheckCircle2,
+  XCircle,
+  AlertCircle
 } from "lucide-react";
 
 interface CallLog {
@@ -32,28 +43,16 @@ interface DashboardHomeProps {
 }
 
 export function DashboardHome({ leads, callLogs, onViewLead, onDial, onNavigate }: DashboardHomeProps) {
-  // Pipeline stats
-  const discovery = leads.filter(l => l.status === "Discovery").length;
+  // Stats
   const outbound = leads.filter(l => l.status === "Outbound Call").length;
-  const audit = leads.filter(l => l.status === "Audit Requested").length;
   const closed = leads.filter(l => l.status === "Closed").length;
-  const total = leads.length;
+  const totalLeads = leads.length;
 
-  // Call stats
   const totalCalls = callLogs.length;
   const successCalls = callLogs.filter(c => c.status === "Success").length;
   const successRate = totalCalls > 0 ? Math.round((successCalls / totalCalls) * 100) : 0;
   const totalTalkSecs = callLogs.reduce((s, c) => s + c.duration_seconds, 0);
   const avgDuration = totalCalls > 0 ? Math.round(totalTalkSecs / totalCalls) : 0;
-
-  // Hot leads (top 5 by score, not closed)
-  const hotLeads = [...leads]
-    .filter(l => l.status !== "Closed")
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 5);
-
-  // Recent calls (last 5)
-  const recentCalls = callLogs.slice(0, 5);
 
   const formatDuration = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -61,235 +60,388 @@ export function DashboardHome({ leads, callLogs, onViewLead, onDial, onNavigate 
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const funnelMax = Math.max(discovery, outbound, audit, closed, 1);
+  const hotLeads = [...leads]
+    .filter(l => l.status !== "Closed")
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 2); // Get top 2 for the "Cards" view
+
+  const recentCalls = callLogs.slice(0, 6);
+
+  // Mock bar chart data resembling the Finexy chart
+  const barData = [
+    { label: "Jan", bottom: 40, top: 40 },
+    { label: "Feb", bottom: 30, top: 45 },
+    { label: "Mar", bottom: 60, top: 30 },
+    { label: "Apr", bottom: 45, top: 50 },
+    { label: "May", bottom: 80, top: 20 },
+    { label: "Jun", bottom: 70, top: 30 },
+    { label: "Jul", bottom: 50, top: 40 },
+    { label: "Aug", bottom: 20, top: 50 },
+  ];
 
   return (
-    <div className="flex flex-col h-full w-full max-w-7xl mx-auto py-8 overflow-y-auto px-4 lg:px-8 xl:px-12 custom-scrollbar">
+    <div className="flex flex-col w-full max-w-[1500px] mx-auto py-8 transition-all duration-300 px-4 md:px-8">
       
-      {/* Welcome Header */}
-      <div className="mb-10 animate-fade-in flex items-center justify-between">
+      {/* ── Welcome Header ── */}
+      <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight">
-            <span className="gradient-text">Team</span> <span className="text-white">HQ</span>
+          <h1 className="text-[28px] font-bold tracking-tight text-[#171717] flex items-center gap-2">
+            Good morning, Sales Lead
           </h1>
-          <p className="text-gray-400 mt-2 text-sm font-medium tracking-wide">Your AI sales team at a glance — pipeline, performance, and team status.</p>
-        </div>
-        <div className="hidden sm:flex items-center gap-3">
-           <span className="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
-             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div> All Systems Online
-           </span>
+          <p className="text-[#6B7280] mt-1 text-[14px]">Stay on top of your tasks, monitor progress, and track status.</p>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10 stagger-children">
-        <div className="glass-card rounded-3xl p-6 relative overflow-hidden group hover:border-indigo-500/30 transition-colors duration-500">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 blur-[30px] rounded-full group-hover:bg-indigo-500/20 transition-colors duration-500"></div>
-          <div className="flex items-center gap-2 text-[11px] text-gray-400 mb-4 font-mono uppercase tracking-[0.15em] relative z-10">
-            <Target className="w-4 h-4 text-indigo-400" /> Pipeline Volume
-          </div>
-          <div className="text-4xl font-black text-white tabular-nums tracking-tight relative z-10">{total}</div>
-          <div className="text-xs text-gray-500 mt-2 font-medium relative z-10"><span className="text-indigo-400">{leads.filter(l => l.status !== "Closed").length}</span> active prospects</div>
-        </div>
-
-        <div className="glass-card rounded-3xl p-6 relative overflow-hidden group hover:border-emerald-500/30 transition-colors duration-500">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 blur-[30px] rounded-full group-hover:bg-emerald-500/20 transition-colors duration-500"></div>
-          <div className="flex items-center gap-2 text-[11px] text-gray-400 mb-4 font-mono uppercase tracking-[0.15em] relative z-10">
-            <TrendingUp className="w-4 h-4 text-emerald-400" /> Success Rate
-          </div>
-          <div className="text-4xl font-black text-emerald-400 tabular-nums tracking-tight relative z-10">{successRate}%</div>
-          <div className="text-xs text-gray-500 mt-2 font-medium relative z-10"><span className="text-emerald-400/80">{successCalls}</span> positive outcomes</div>
-        </div>
-
-        <div className="glass-card rounded-3xl p-6 relative overflow-hidden group hover:border-blue-500/30 transition-colors duration-500">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 blur-[30px] rounded-full group-hover:bg-blue-500/20 transition-colors duration-500"></div>
-          <div className="flex items-center gap-2 text-[11px] text-gray-400 mb-4 font-mono uppercase tracking-[0.15em] relative z-10">
-            <Phone className="w-4 h-4 text-blue-400" /> Outbound Volume
-          </div>
-          <div className="text-4xl font-black text-white tabular-nums tracking-tight relative z-10">{totalCalls}</div>
-          <div className="text-xs text-gray-500 mt-2 font-medium relative z-10"><span className="text-blue-400/80">{formatDuration(totalTalkSecs)}</span> total connection time</div>
-        </div>
-
-        <div className="glass-card rounded-3xl p-6 relative overflow-hidden group hover:border-purple-500/30 transition-colors duration-500">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 blur-[30px] rounded-full group-hover:bg-purple-500/20 transition-colors duration-500"></div>
-          <div className="flex items-center gap-2 text-[11px] text-gray-400 mb-4 font-mono uppercase tracking-[0.15em] relative z-10">
-            <Clock className="w-4 h-4 text-purple-400" /> Avg Connection
-          </div>
-          <div className="text-4xl font-black text-white tabular-nums tracking-tight relative z-10">{formatDuration(avgDuration)}</div>
-          <div className="text-xs text-gray-500 mt-2 font-medium relative z-10">duration per dial</div>
-        </div>
-      </div>
-
-      {/* AI Team Quick Access */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10 stagger-children">
-        {[
-          { role: "Strategist", desc: "ICP & Frameworks", icon: "🧠", color: "purple", status: "Ready", page: "persona" },
-          { role: "Researcher", desc: "Lead Hunting", icon: "🔍", color: "blue", status: `${leads.length} leads`, page: "hunter" },
-          { role: "Caller", desc: "Voice Agent", icon: "📞", color: "emerald", status: `${callLogs.length} calls`, page: "dashboard" },
-          { role: "Coach", desc: "Objection Training", icon: "🎯", color: "amber", status: "Awaiting", page: "trainer" },
-        ].map(member => (
-          <button
-            key={member.role}
-            onClick={() => onNavigate(member.page)}
-            className="glass-card rounded-2xl p-5 text-left transition-all duration-300 group cursor-pointer hover:-translate-y-1 hover:shadow-xl hover:border-white/[0.12]"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-2xl">{member.icon}</span>
-              <span className="text-[10px] font-mono text-gray-400 bg-white/5 px-2 py-1 rounded-lg border border-white/10 uppercase tracking-wider">{member.status}</span>
-            </div>
-            <div className="text-sm font-bold text-white group-hover:text-white/90">{member.role}</div>
-            <div className="text-[12px] text-gray-500 mt-1 font-medium">{member.desc}</div>
-          </button>
-        ))}
-      </div>
-
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* Pipeline Funnel — 2 cols */}
-        <div className="lg:col-span-2 glass-card rounded-3xl p-8 relative overflow-hidden group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 blur-xl pointer-events-none group-hover:opacity-100 opacity-0 transition-opacity duration-1000"></div>
+        {/* ── LEFT COLUMN (Approx 3.5/12) ── */}
+        <div className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6">
           
-          <div className="flex items-center justify-between mb-8 relative z-10">
-            <h2 className="flex items-center gap-3 text-xs font-mono text-gray-400 uppercase tracking-[0.15em]">
-              <div className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20"><BarChart3 className="w-4 h-4 text-blue-400" /></div>
-              Conversion Vector
-            </h2>
-            <button
-              onClick={() => onNavigate("dashboard")}
-              className="text-xs text-gray-400 hover:text-white transition-premium flex items-center gap-1 font-mono uppercase tracking-widest bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl"
-            >
-              Enter Funnel <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          <div className="space-y-6 relative z-10">
-            {[
-              { label: "Discovery", count: discovery, glow: "from-blue-600 to-indigo-600", color: "blue" },
-              { label: "Outbound Call", count: outbound, glow: "from-amber-500 to-orange-500", color: "amber" },
-              { label: "Audit Requested", count: audit, glow: "from-purple-600 to-fuchsia-600", color: "purple" },
-              { label: "Closed", count: closed, glow: "from-emerald-500 to-teal-500", color: "emerald" },
-            ].map((stage, idx) => (
-              <div key={stage.label} className="flex items-center gap-6 group/row">
-                <div className={`text-sm font-semibold w-36 text-right text-gray-300 group-hover/row:text-${stage.color}-400 transition-colors duration-300`}>{stage.label}</div>
-                <div className="flex-1 bg-black/40 border border-white/5 rounded-full h-10 overflow-hidden relative shadow-inner">
-                  <div
-                    className={`absolute top-0 left-0 h-full bg-gradient-to-r ${stage.glow} rounded-full flex items-center transition-all duration-1000 ease-out`}
-                    style={{ width: `${Math.max((stage.count / funnelMax) * 100, 4)}%` }}
-                  >
-                    <div className="absolute inset-0 bg-white/20 w-1/2 -skew-x-12 -translate-x-full group-hover/row:animate-[shimmer_1.5s_infinite]"></div>
-                    <span className="text-sm font-black text-white pl-4 drop-shadow-md tabular-nums">{stage.count}</span>
-                  </div>
-                </div>
+          {/* Pipeline Volume (Matches Total Balance) */}
+          <div className="bg-white rounded-[24px] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-[#F0F0F0]">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[#6B7280] text-[15px] font-medium">Pipeline Volume</span>
+              <div className="flex items-center gap-1.5 bg-[#F4F5F7] px-2.5 py-1 rounded-full text-[12px] font-semibold text-[#171717]">
+                <Briefcase className="w-3.5 h-3.5 text-[#3B82F6]" />
+                Volume
               </div>
-            ))}
+            </div>
+            <div className="text-[38px] font-extrabold text-[#171717] tracking-tight mb-2">
+              {totalLeads} <span className="text-[18px] text-[#A1A1AA] font-medium tracking-normal">leads</span>
+            </div>
+            
+            <div className="flex items-center gap-2 mb-8">
+              <span className="bg-[#ECFDF5] text-[#10B981] px-2 py-0.5 rounded flex items-center text-[12px] font-bold">
+                ↑ 5%
+              </span>
+              <span className="text-[#A1A1AA] text-[13px] font-medium">than last month</span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => onNavigate("hunter")}
+                className="flex-1 bg-[#1A1D20] text-white rounded-full py-3 text-[14px] font-semibold flex items-center justify-center gap-2 hover:bg-[#2D3136] transition-colors"
+              >
+                <ArrowRightLeft className="w-4 h-4" /> Import
+              </button>
+              <button className="flex-1 bg-white border border-[#E0E0E0] text-[#171717] rounded-full py-3 text-[14px] font-semibold flex items-center justify-center gap-2 hover:bg-[#F4F5F7] transition-colors">
+                <ArrowDownToLine className="w-4 h-4" /> Export
+              </button>
+            </div>
           </div>
 
-          {total > 0 && (
-            <div className="mt-8 pt-6 border-t border-white/5 flex items-center gap-8 relative z-10">
-              <div className="text-sm text-gray-500 font-medium">
-                Velocity: <span className="text-white font-bold text-lg tabular-nums">{total > 0 ? Math.round((closed / total) * 100) : 0}%</span> <span className="text-xs">Discovery → Closed</span>
+          {/* Funnel Health (Matches Monthly Spending Limit) */}
+          <div className="bg-white rounded-[24px] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-[#F0F0F0]">
+            <div className="text-[#171717] text-[15px] font-bold mb-4">Dialer Capacity</div>
+            
+            <div className="w-full h-2.5 bg-[#F4F5F7] rounded-full overflow-hidden mb-3 flex">
+              <div className="h-full bg-[#FF5C39]" style={{ width: '25%' }}></div>
+              <div className="h-full bg-repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,92,57,0.1) 4px, rgba(255,92,57,0.1) 8px)" style={{ width: '75%' }}></div>
+            </div>
+            
+            <div className="flex items-center justify-between text-[13px] font-semibold text-[#171717]">
+              <span>{outbound} active</span>
+              <span className="text-[#A1A1AA]">100 limit</span>
+            </div>
+          </div>
+
+          {/* Priority Targets (Matches My Cards) */}
+          <div className="bg-white rounded-[24px] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-[#F0F0F0]">
+            <div className="flex items-center justify-between mb-5">
+              <div className="text-[#171717] text-[15px] font-bold flex items-center gap-2">
+                <Wallet className="w-4 h-4 text-[#A1A1AA]" />
+                Priority Targets
               </div>
-              {outbound > 0 && (
-                <div className="text-sm text-gray-500 font-medium border-l border-white/10 pl-8">
-                  Awaiting Execution: <span className="text-amber-400 font-bold text-lg tabular-nums">{outbound}</span> <span className="text-xs">Targets</span>
-                </div>
-              )}
+              <button 
+                onClick={() => onNavigate("hunter")}
+                className="text-[#6B7280] text-[13px] font-semibold hover:text-[#171717] flex items-center gap-1 bg-[#F4F5F7] px-3 py-1.5 rounded-full"
+              >
+                + Add new
+              </button>
             </div>
-          )}
-        </div>
 
-        {/* Hot Leads — 1 col */}
-        <div className="glass-card rounded-3xl p-8 relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-orange-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-700"></div>
-          <h2 className="flex items-center gap-3 text-xs font-mono text-gray-400 uppercase tracking-[0.15em] mb-6">
-            <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20"><Zap className="w-4 h-4 text-amber-400" /></div>
-             Priority Targets
-          </h2>
-
-          {hotLeads.length === 0 ? (
-            <div className="bg-black/20 rounded-2xl border border-white/5 p-8 text-center flex flex-col items-center justify-center h-[300px]">
-              <Target className="w-8 h-8 mb-4 opacity-20 text-white" />
-              <p className="text-sm text-gray-500 font-medium">No active leads in pipeline.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {hotLeads.map((lead, i) => (
-                <div
-                  key={lead.id}
-                  onClick={() => onViewLead(lead)}
-                  className="flex items-center gap-4 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.05] hover:border-amber-500/20 rounded-2xl p-4 cursor-pointer transition-all duration-300 group/lead"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 flex items-center justify-center text-sm font-bold text-amber-500 shadow-inner group-hover/lead:bg-amber-500/20 transition-colors">
-                    {i + 1}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[15px] font-semibold text-gray-200 truncate group-hover/lead:text-white transition-colors">{lead.name}</div>
-                    <div className="text-xs text-gray-500 truncate font-medium mt-0.5">{lead.company}</div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 group-hover/lead:bg-emerald-500/20 transition-colors shadow-sm">
-                      {lead.score}
-                    </span>
+            <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar -mx-2 px-2 snap-x">
+              {/* Dark Card */}
+              <div className="min-w-[220px] h-[140px] bg-[#1A1D20] text-white rounded-[20px] p-4 flex flex-col justify-between relative overflow-hidden shrink-0 snap-start shadow-[0_8px_24px_rgba(26,29,32,0.25)] hover:scale-[1.02] transition-transform cursor-pointer">
+                {/* Decorative squares */}
+                <div className="absolute top-4 right-4 w-12 h-12 bg-white/[0.03] rounded-lg"></div>
+                <div className="absolute top-8 right-12 w-16 h-16 bg-white/[0.02] rounded-lg"></div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="bg-white/10 text-white px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white opacity-60"></span>
+                    Hot Lead
+                  </span>
+                  {/* Master card logo mock */}
+                  <div className="flex relative items-center justify-center opacity-80 mix-blend-screen overflow-hidden w-8 h-5">
+                     <div className="w-5 h-5 bg-[#FF5C39] rounded-full absolute left-0"></div>
+                     <div className="w-5 h-5 bg-[#F59E0B] rounded-full absolute right-0 mix-blend-multiply"></div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* Recent Activity */}
-      <div className="glass-card rounded-3xl p-8 relative overflow-hidden group mb-8">
-        <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-indigo-500/5 to-transparent pointer-events-none group-hover:opacity-100 opacity-50 transition-opacity duration-1000"></div>
-        <div className="flex items-center justify-between mb-6 relative z-10">
-          <h2 className="flex items-center gap-3 text-xs font-mono text-gray-400 uppercase tracking-[0.15em]">
-            <div className="p-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20"><Activity className="w-4 h-4 text-indigo-400" /></div>
-            Execution Log
-          </h2>
-          <button
-            onClick={() => onNavigate("call_logs")}
-            className="text-xs text-gray-400 hover:text-white transition-premium flex items-center gap-1 font-mono uppercase tracking-widest bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl"
-          >
-            Access Archives <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {recentCalls.length === 0 ? (
-          <div className="bg-black/20 rounded-2xl border border-white/5 p-8 text-center flex flex-col items-center justify-center h-[200px]">
-            <Phone className="w-8 h-8 mb-4 opacity-20 text-white" />
-            <p className="text-sm text-gray-500 font-medium">No telemetry recorded. Initialize dialing sequence.</p>
-          </div>
-        ) : (
-          <div className="grid gap-3 relative z-10">
-            {recentCalls.map((call, i) => (
-              <div key={call.id} className="flex items-center justify-between bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.05] hover:border-white/10 rounded-2xl px-6 py-4 transition-all duration-300">
-                <div className="flex items-center gap-5">
-                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center border shadow-inner ${
-                      call.status === "Success" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" :
-                      call.status === "Voicemail" ? "bg-yellow-500/10 border-yellow-500/20 text-yellow-400" : "bg-red-500/10 border-red-500/20 text-red-400"
-                    }`}>
-                     <Phone className="w-4 h-4" />
-                   </div>
+                <div className="flex items-end justify-between mt-auto">
                   <div>
-                    <div className="text-[15px] font-semibold text-gray-200">{call.lead_name || "Unknown Identity"}</div>
-                    <div className="text-xs text-gray-500 font-medium mt-0.5">{call.lead_company || "External Vector"}</div>
+                    <div className="text-[10px] text-white/50 mb-0.5">Target Company</div>
+                    <div className="font-mono text-[14px] font-bold tracking-wider">{hotLeads[0]?.company || "N/A"}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] text-white/50 mb-0.5">Score</div>
+                    <div className="font-mono text-[14px] font-bold">{hotLeads[0]?.score || "0"}</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-6">
-                  <span className="text-sm font-mono text-gray-400 font-medium">{formatDuration(call.duration_seconds)}</span>
-                  <span className={`text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg border ${
-                    call.status === "Success" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" :
-                    call.status === "Voicemail" ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30" :
-                    "bg-red-500/10 text-red-400 border-red-500/30"
-                  }`}>
-                    {call.status}
+              </div>
+
+              {/* Coral Card */}
+              <div className="min-w-[180px] h-[140px] bg-gradient-to-br from-[#FF6B4A] to-[#FF451A] text-white rounded-[20px] p-4 flex flex-col justify-between relative overflow-hidden shrink-0 snap-start shadow-[0_8px_24px_rgba(255,92,57,0.25)] hover:scale-[1.02] transition-transform cursor-pointer">
+                <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="bg-white/20 text-white px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase flex items-center gap-1.5">
+                     <span className="w-1.5 h-1.5 rounded-full bg-white opacity-80 shadow-[0_0_8px_rgba(255,255,255,0.8)]"></span>
+                    Warm
                   </span>
                 </div>
+
+                <div className="flex items-end justify-between mt-auto">
+                  <div>
+                    <div className="text-[10px] text-white/60 mb-0.5">Target Company</div>
+                    <div className="font-mono text-[14px] font-bold tracking-wider">{hotLeads[1]?.company || "N/A"}</div>
+                  </div>
+                </div>
               </div>
-            ))}
+            </div>
           </div>
-        )}
+        </div>
+
+        {/* ── MIDDLE & RIGHT COLUMNS (Approx 8.5/12) ── */}
+        <div className="lg:col-span-8 xl:col-span-9 flex flex-col gap-6">
+          
+          {/* Top Row: 2x2 Stats Grid + Bar Chart */}
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+            
+            {/* 2x2 Stats Grid taking 3 cols */}
+            <div className="xl:col-span-3 grid grid-cols-2 gap-4 md:gap-6">
+              
+              {/* Card 1: Success Rate (Orange Solid) */}
+              <div className="bg-gradient-to-br from-[#FF6B4A] to-[#FF451A] rounded-[24px] p-5 shadow-[0_8px_24px_rgba(255,92,57,0.25)] flex flex-col justify-between aspect-[1.4/1] relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                <div className="flex justify-between items-start relative">
+                  <span className="text-white/90 text-[14px] font-semibold">Success Rate</span>
+                  <div className="p-2 bg-white/10 rounded-xl group-hover:scale-110 transition-transform">
+                    <TrendingUp className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                <div className="relative">
+                  <div className="text-[36px] font-extrabold text-white mb-2 leading-none">{successRate}%</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="bg-white/20 text-white text-[11px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                      ↑ 7%
+                    </span>
+                    <span className="text-white/70 text-[12px] font-medium">This month</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Outbound Calls (White) */}
+              <div className="bg-white rounded-[24px] p-5 border border-[#F0F0F0] shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between aspect-[1.4/1] hover:border-[#E0E0E0] transition-colors group">
+                <div className="flex justify-between items-start">
+                  <span className="text-[#6B7280] text-[14px] font-semibold">Outbound Calls</span>
+                  <div className="p-2 bg-[#F4F5F7] rounded-xl group-hover:bg-[#E9ECEF] transition-colors">
+                    <Phone className="w-4 h-4 text-[#171717]" />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[36px] font-extrabold text-[#171717] mb-2 leading-none">{totalCalls}</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="bg-[#FEF2F2] text-[#EF4444] text-[11px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                      ↓ 5%
+                    </span>
+                    <span className="text-[#A1A1AA] text-[12px] font-medium">This month</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Avg Duration (White) */}
+              <div className="bg-white rounded-[24px] p-5 border border-[#F0F0F0] shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between aspect-[1.4/1] hover:border-[#E0E0E0] transition-colors group">
+                <div className="flex justify-between items-start">
+                  <span className="text-[#6B7280] text-[14px] font-semibold">Call Duration</span>
+                  <div className="p-2 bg-[#F4F5F7] rounded-xl group-hover:bg-[#E9ECEF] transition-colors">
+                    <Clock className="w-4 h-4 text-[#171717]" />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[36px] font-extrabold text-[#171717] mb-2 leading-none">{formatDuration(avgDuration)}</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="bg-[#ECFDF5] text-[#10B981] text-[11px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                      ↑ 8%
+                    </span>
+                    <span className="text-[#A1A1AA] text-[12px] font-medium">This month</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 4: Closed Won (White) */}
+              <div className="bg-white rounded-[24px] p-5 border border-[#F0F0F0] shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between aspect-[1.4/1] hover:border-[#E0E0E0] transition-colors group">
+                <div className="flex justify-between items-start">
+                  <span className="text-[#6B7280] text-[14px] font-semibold">Deals Closed</span>
+                  <div className="p-2 bg-[#F4F5F7] rounded-xl group-hover:bg-[#E9ECEF] transition-colors">
+                    <Target className="w-4 h-4 text-[#171717]" />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[36px] font-extrabold text-[#171717] mb-2 leading-none">{closed}</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="bg-[#ECFDF5] text-[#10B981] text-[11px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                      ↑ 4%
+                    </span>
+                    <span className="text-[#A1A1AA] text-[12px] font-medium">This month</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Bar Chart taking 2 cols */}
+            <div className="xl:col-span-2 bg-white rounded-[24px] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-[#F0F0F0] flex flex-col">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-[#171717] text-[16px] font-bold">Pipeline Status</h3>
+                <button className="text-[#A1A1AA] hover:text-[#171717] transition-colors"><MoreHorizontal className="w-5 h-5" /></button>
+              </div>
+              <p className="text-[#A1A1AA] text-[13px] font-medium mb-6">Distribution over 8 cycles</p>
+
+              <div className="flex items-center justify-end gap-4 mb-6">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#FF5C39]"></div>
+                  <span className="text-[12px] font-bold text-[#6B7280]">Active</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#1A1D20]"></div>
+                  <span className="text-[12px] font-bold text-[#6B7280]">Closed</span>
+                </div>
+              </div>
+
+              {/* Chart Grid Area */}
+              <div className="relative flex-1 flex items-end justify-between px-2 min-h-[140px]">
+                {/* Horizontal grid lines */}
+                <div className="absolute inset-x-0 bottom-0 top-0 flex flex-col justify-between pointer-events-none">
+                  {[50, 40, 30, 20, 10, 0].map(val => (
+                    <div key={val} className="w-full border-b border-dashed border-[#E9ECEF] flex items-end">
+                      <span className="absolute -left-4 text-[10px] font-bold text-[#A1A1AA] transform -translate-y-1.5">{val}k</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Bars */}
+                {barData.map((data, i) => (
+                  <div key={i} className="relative z-10 w-[22px] flex flex-col justify-end items-center gap-1 group cursor-pointer h-full">
+                    {/* Tooltip mock */}
+                    <div className="absolute -top-8 bg-[#1A1D20] text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      {data.top + data.bottom}k Leads
+                    </div>
+                    {/* Top orange bar (dashed fill effect via CSS or plain bg) */}
+                    <div 
+                      className="w-full rounded-t-lg transition-all duration-300 relative overflow-hidden group-hover:brightness-110"
+                      style={{ height: `${(data.top / 80) * 100}%`, backgroundColor: '#FF5C39' }}
+                    >
+                       <div className="absolute inset-0 opacity-20 bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,#fff_2px,#fff_4px)]"></div>
+                    </div>
+                    {/* Bottom dark bar */}
+                    <div 
+                      className="w-full bg-[#1A1D20] rounded-b-sm transition-all duration-300 group-hover:bg-[#2D3136]"
+                      style={{ height: `${(data.bottom / 80) * 100}%` }}
+                    ></div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* X Axis labels */}
+              <div className="flex justify-between px-2 mt-4 text-[#A1A1AA] text-[11px] font-bold">
+                {barData.map(d => <div key={d.label}>{d.label}</div>)}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Recent Activities Table ── */}
+          <div className="bg-white rounded-[24px] p-2 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-[#F0F0F0] overflow-hidden flex-1 flex flex-col mt-2">
+             
+             {/* Table Header Controls */}
+             <div className="px-5 py-4 flex items-center justify-between border-b border-[#F0F0F0]">
+                <h3 className="text-[#171717] text-[16px] font-bold">Recent Activities</h3>
+                <div className="flex items-center gap-3">
+                   <div className="relative">
+                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#A1A1AA]" />
+                      <input 
+                         type="text" 
+                         placeholder="Search"
+                         className="bg-[#F4F5F7] border border-transparent rounded-full pl-9 pr-4 py-2 text-[13px] font-medium outline-none focus:border-[#E0E0E0] focus:bg-white transition-colors w-[180px]" 
+                      />
+                   </div>
+                   <button className="flex items-center gap-2 bg-[#F4F5F7] hover:bg-[#E9ECEF] transition-colors px-4 py-2 rounded-full text-[13px] font-bold text-[#171717]">
+                      Filter <Filter className="w-3.5 h-3.5" />
+                   </button>
+                </div>
+             </div>
+
+             {/* Table Content */}
+             <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                   <thead>
+                      <tr className="text-[#A1A1AA] text-[12px] font-semibold border-b border-[#F0F0F0] bg-white">
+                         <th className="px-4 py-3 w-12 text-center"><input type="checkbox" className="rounded border-[#E0E0E0] text-[#FF5C39] focus:ring-[#FF5C39]" /></th>
+                         <th className="px-4 py-3 font-medium">Order ID</th>
+                         <th className="px-4 py-3 font-medium">Activity</th>
+                         <th className="px-4 py-3 font-medium">Price</th>
+                         <th className="px-4 py-3 font-medium">Status</th>
+                         <th className="px-4 py-3 font-medium">Date</th>
+                         <th className="px-4 py-3 w-12 text-center"></th>
+                      </tr>
+                   </thead>
+                   <tbody className="divide-y divide-[#F0F0F0]/50">
+                      {recentCalls.length === 0 ? (
+                        <tr><td colSpan={7} className="px-6 py-10 text-center text-[#A1A1AA] font-medium text-[14px]">No activities yet</td></tr>
+                      ) : (
+                        recentCalls.map((call, i) => (
+                           <tr key={call.id} className="hover:bg-[#F9FAFB] transition-colors group">
+                              <td className="px-4 py-4 text-center">
+                                 <input type="checkbox" defaultChecked={i===3} className={`rounded border-[#E0E0E0] ${i===3 ? 'text-[#1A1D20]' : 'text-[#FF5C39]'} focus:ring-0 cursor-pointer`} />
+                              </td>
+                              <td className="px-4 py-4 text-[#A1A1AA] font-mono text-[13px]">
+                                 INV_{String(i + 70).padStart(5, '0')}
+                              </td>
+                              <td className="px-4 py-4">
+                                 <div className="flex items-center gap-3">
+                                    <div className="w-7 h-7 rounded shrink-0 bg-[#E0F2FE] flex items-center justify-center">
+                                       <Activity className="w-3.5 h-3.5 text-[#0284C7]" />
+                                    </div>
+                                    <span className="font-bold text-[#171717] text-[13px]">{call.lead_company || "External Vector"}</span>
+                                 </div>
+                              </td>
+                              <td className="px-4 py-4 text-[#171717] font-bold text-[13px]">
+                                 {call.duration_seconds > 0 ? `$${(call.duration_seconds * 12.5).toLocaleString()}` : "$0"}
+                              </td>
+                              <td className="px-4 py-4">
+                                 <div className="flex items-center gap-1.5">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${call.status === "Success" ? "bg-[#10B981]" : call.status === "Voicemail" ? "bg-[#F59E0B]" : "bg-[#EF4444]"}`}></div>
+                                    <span className="text-[12px] font-bold text-[#171717]">
+                                       {call.status}
+                                    </span>
+                                 </div>
+                              </td>
+                              <td className="px-4 py-4 text-[#A1A1AA] font-semibold text-[13px]">
+                                 {new Date(call.created_at).toLocaleDateString("en-GB", { day: 'numeric', month: 'short', year: 'numeric' })} {new Date(call.created_at).toLocaleTimeString("en-US", { hour: '2-digit', minute:'2-digit' })}
+                              </td>
+                              <td className="px-4 py-4 text-center text-[#A1A1AA] opacity-0 group-hover:opacity-100 transition-opacity">
+                                 <button className="hover:text-[#171717]"><MoreHorizontal className="w-4 h-4" /></button>
+                              </td>
+                           </tr>
+                        ))
+                      )}
+                   </tbody>
+                </table>
+             </div>
+          </div>
+
+        </div>
       </div>
     </div>
   );

@@ -10,11 +10,11 @@ if (!fs.existsSync(dataDir)) {
 const dbPath = path.join(dataDir, "opencloser.db");
 export const db = new Database(dbPath);
 
-// Enable WAL mode for better concurrency and NORMAL synchronous for speed
 db.pragma("journal_mode = WAL");
 db.pragma("synchronous = NORMAL");
 
 export function initDb() {
+  // ── Core Tables ─────────────────────────────────────────
   db.exec(`
     CREATE TABLE IF NOT EXISTS leads (
       id TEXT PRIMARY KEY,
@@ -45,18 +45,41 @@ export function initDb() {
     );
   `);
 
-  // Seed initial data if empty
-  const count = db.prepare("SELECT COUNT(*) as count FROM leads").get() as {
-    count: number;
+  // ── Safe Migrations — Enriched Lead Fields ────────────────
+  const safeAlter = (sql: string) => {
+    try { db.exec(sql); } catch (_) {}
   };
-  if (count.count === 0) {
-    const insertLead = db.prepare(
-      "INSERT INTO leads (id, name, company, phone, status, score) VALUES (?, ?, ?, ?, ?, ?)",
-    );
+  safeAlter("ALTER TABLE leads ADD COLUMN email TEXT DEFAULT ''");
+  safeAlter("ALTER TABLE leads ADD COLUMN title TEXT DEFAULT ''");
+  safeAlter("ALTER TABLE leads ADD COLUMN linkedin_url TEXT DEFAULT ''");
+  safeAlter("ALTER TABLE leads ADD COLUMN notes TEXT DEFAULT ''");
 
-    insertLead.run("lead_1", "Sarah Jenkins", "Acme Corp", "+1 (555) 019-2834", "Discovery", 85);
-    insertLead.run("lead_2", "Marcus Chen", "TechFlow Solutions", "+1 (555) 823-1044", "Discovery", 92);
-    insertLead.run("lead_3", "Elena Rodriguez", "Global Logistics", "+1 (555) 392-8841", "Outbound Call", 78);
-    insertLead.run("lead_4", "David Kim", "Apex Financial", "+1 (555) 744-2910", "Audit Requested", 95);
+  // ── Call Sessions Table ───────────────────────────────────
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS call_sessions (
+      id TEXT PRIMARY KEY,
+      lead_id TEXT NOT NULL,
+      provider TEXT NOT NULL DEFAULT 'gemini',
+      duration_seconds INTEGER DEFAULT 0,
+      transcript TEXT DEFAULT '[]',
+      status TEXT NOT NULL DEFAULT 'pending',
+      sentiment TEXT DEFAULT 'Neutral',
+      objections_handled TEXT DEFAULT '[]',
+      emotion_log TEXT DEFAULT '[]',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(lead_id) REFERENCES leads(id)
+    );
+  `);
+
+  // ── Seed initial data if empty ────────────────────────────
+  const count = db.prepare("SELECT COUNT(*) as count FROM leads").get() as { count: number };
+  if (count.count === 0) {
+    const insert = db.prepare(
+      "INSERT INTO leads (id, name, company, phone, status, score, email, title) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    );
+    insert.run("lead_1", "Sarah Jenkins", "Acme Corp", "+1 (555) 019-2834", "Discovery", 85, "sarah@acmecorp.com", "VP of Operations");
+    insert.run("lead_2", "Marcus Chen", "TechFlow Solutions", "+1 (555) 823-1044", "Discovery", 92, "m.chen@techflow.io", "CTO");
+    insert.run("lead_3", "Elena Rodriguez", "Global Logistics", "+1 (555) 392-8841", "Outbound Call", 78, "erodriguez@globalogistics.com", "Director of Procurement");
+    insert.run("lead_4", "David Kim", "Apex Financial", "+1 (555) 744-2910", "Audit Requested", 95, "dkim@apexfin.com", "CEO");
   }
 }

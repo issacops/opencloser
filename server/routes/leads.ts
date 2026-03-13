@@ -33,6 +33,9 @@ router.post("/scrape", async (req, res) => {
                 lead.phone,
                 "Discovery",
                 lead.score,
+                lead.email || "",
+                lead.title || "",
+                lead.linkedin_url || "",
             );
             insertedLeads.push({ id, ...lead, status: "Discovery" });
             addActivity(

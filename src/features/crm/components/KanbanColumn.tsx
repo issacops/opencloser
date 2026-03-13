@@ -13,11 +13,11 @@ interface KanbanColumnProps {
   onViewDetails?: (lead: Lead) => void;
 }
 
-const STATUS_STYLE: Record<string, { dot: string; text: string }> = {
-  "Discovery": { dot: "bg-blue-400", text: "text-blue-400/80" },
-  "Outbound Call": { dot: "bg-amber-400", text: "text-amber-400/80" },
-  "Audit Requested": { dot: "bg-purple-400", text: "text-purple-400/80" },
-  "Closed": { dot: "bg-emerald-400", text: "text-emerald-400/80" },
+const STATUS_STYLE: Record<string, { dot: string; text: string; bg: string }> = {
+  "Discovery": { dot: "bg-blue-500", text: "text-blue-600", bg: "bg-blue-50/50" },
+  "Outbound Call": { dot: "bg-coral", text: "text-coral", bg: "bg-coral-light/50" },
+  "Audit Requested": { dot: "bg-amber-500", text: "text-amber-600", bg: "bg-amber-50/50" },
+  "Closed": { dot: "bg-emerald-500", text: "text-emerald-600", bg: "bg-emerald-50/50" },
 };
 
 export function KanbanColumn({
@@ -29,25 +29,25 @@ export function KanbanColumn({
   onDial,
   onViewDetails,
 }: KanbanColumnProps) {
-  const style = STATUS_STYLE[status] || { dot: "bg-gray-400", text: "text-gray-400" };
+  const style = STATUS_STYLE[status] || { dot: "bg-gray-400", text: "text-gray-600", bg: "bg-surface-bg/50" };
 
   return (
     <div
-      className="flex flex-col w-72 shrink-0 h-full"
+      className="flex flex-col w-80 shrink-0 h-full"
       onDrop={(e) => onDrop(e, status)}
       onDragOver={onDragOver}
     >
-      <div className="flex items-center justify-between mb-4 px-1">
-        <h2 className={`text-[12px] font-semibold uppercase tracking-[0.1em] ${style.text} flex items-center gap-2`}>
-          <span className={`w-2 h-2 rounded-full ${style.dot}`}></span>
+      <div className="flex items-center justify-between mb-4 px-2">
+        <h2 className={`text-[12px] font-bold uppercase tracking-[0.12em] ${style.text} flex items-center gap-2.5`}>
+          <span className={`w-2.5 h-2.5 rounded-full ${style.dot} shadow-sm`}></span>
           {status}
         </h2>
-        <span className="text-[11px] font-mono text-gray-600 bg-white/[0.03] px-2 py-0.5 rounded-md border border-white/[0.04]">
+        <span className="text-[11px] font-bold text-ink-secondary bg-white px-2.5 py-1 rounded-lg border border-surface-border shadow-sm">
           {leads.length}
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-4 flex flex-col gap-2.5 min-h-[200px] rounded-xl border border-dashed border-transparent hover:border-white/[0.06] transition-all p-1 stagger-children">
+      <div className={`flex-1 overflow-y-auto pb-6 flex flex-col gap-3.5 min-h-[200px] rounded-2xl border border-transparent hover:border-surface-border transition-all p-2 stagger-children custom-scrollbar ${style.bg}`}>
         {leads.map((lead) => (
           <LeadCard
             key={lead.id}
@@ -57,6 +57,12 @@ export function KanbanColumn({
             onViewDetails={onViewDetails}
           />
         ))}
+
+        {leads.length === 0 && (
+          <div className="flex-1 flex flex-col items-center justify-center text-ink-muted opacity-30 italic text-xs py-10">
+             Drop leads here
+          </div>
+        )}
       </div>
     </div>
   );

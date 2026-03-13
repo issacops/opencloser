@@ -16,15 +16,15 @@ export async function simulateLeadScraping(query: string, location: string, icp:
   - Competitors to beat: ${icp?.competitorNames?.join(", ") || "Not specified"}
   
   Generate 4 highly realistic, fictional business leads that match this search AND the ICP profile above.
-  Ensure the names, companies, and phone numbers look completely authentic for the requested location and industry.
+  Ensure the names, companies, phone numbers, emails, job titles, and LinkedIn URLs look completely authentic for the requested location and industry.
   Score them between 60 and 99 based on how well they match the ICP.
   Leads with decision-maker titles matching the ICP should score higher.
   
-  Return a JSON array of objects with the following keys: name, company, phone, score.
+  Return a JSON array of objects with: name, company, phone, email, title, linkedin_url, score.
   `;
 
     const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-2.5-flash-preview",
         contents: prompt,
         config: {
             responseMimeType: "application/json",
@@ -36,15 +36,50 @@ export async function simulateLeadScraping(query: string, location: string, icp:
                         name: { type: Type.STRING },
                         company: { type: Type.STRING },
                         phone: { type: Type.STRING },
+                        email: { type: Type.STRING },
+                        title: { type: Type.STRING },
+                        linkedin_url: { type: Type.STRING },
                         score: { type: Type.INTEGER },
                     },
-                    required: ["name", "company", "phone", "score"],
+                    required: ["name", "company", "phone", "email", "title", "linkedin_url", "score"],
                 },
             },
         },
     });
 
     return JSON.parse(response.text || "[]");
+}
+
+export async function analyzeSentimentSlice(lines: { role: string; text: string }[]) {
+    if (lines.length === 0) return { sentiment: "Neutral", confidence: 0, dominantMood: "Neutral" };
+    
+    const transcript = lines.map(l => `${l.role === "user" ? "PROSPECT" : "AI"}: ${l.text}`).join("\n");
+    const prompt = `You are an expert sales call analyst. Analyze the last few lines of this sales call transcript and determine the prospect's current sentiment.
+
+TRANSCRIPT:
+${transcript}
+
+Classify the prospect's sentiment as one of: "Hostile", "Cold", "Skeptical", "Neutral", "Warming", "Buying".
+Confidence score 0-100.`;
+
+    const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash-preview",
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                    sentiment: { type: Type.STRING },
+                    confidence: { type: Type.INTEGER },
+                    dominantMood: { type: Type.STRING },
+                },
+                required: ["sentiment", "confidence", "dominantMood"],
+            },
+        },
+    });
+
+    return JSON.parse(response.text || '{}');
 }
 
 export async function processOnboardingChat(messages: any[]) {

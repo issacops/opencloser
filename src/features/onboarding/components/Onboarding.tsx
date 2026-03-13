@@ -87,69 +87,65 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   };
 
   return (
-    <div className="flex flex-col h-full max-w-3xl mx-auto w-full relative">
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none"></div>
-      
-      <div className="flex flex-col h-full glass-card rounded-3xl overflow-hidden shadow-2xl relative z-10 border border-white/[0.05] bg-black/40 backdrop-blur-2xl">
+    <div className="flex flex-col h-full max-w-4xl mx-auto w-full px-4 md:px-8 py-8 transition-all">
+      <div className="flex flex-col h-full w-full bg-white rounded-[24px] overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-[#F0F0F0] relative z-10 transition-all">
         {/* Header */}
-        <div className="flex items-center gap-4 px-8 py-6 border-b border-white/[0.05] bg-white/[0.01]">
-          <div className="relative">
-            <div className="absolute -inset-2 bg-indigo-500/20 rounded-full blur-md animate-pulse"></div>
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 flex items-center justify-center border border-indigo-500/30 relative z-10">
-              <Sparkles className="w-6 h-6 text-indigo-400" />
+        <div className="flex items-center gap-4 px-8 py-6 border-b border-[#F0F0F0] bg-white">
+          <div className="relative shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-[#FFF1EE] flex items-center justify-center border border-[#FFD4CC] relative z-10 shadow-[0_4px_12px_rgba(255,92,57,0.1)]">
+              <Sparkles className="w-6 h-6 text-[#FF5C39]" />
             </div>
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-              Strategic Intelligence Core <span className="text-[10px] font-mono bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/30 uppercase tracking-widest">Active</span>
+            <h2 className="text-[18px] font-bold text-[#171717] tracking-tight flex items-center gap-2">
+              Strategic Intelligence Core 
+              <span className="text-[10px] font-bold bg-[#ECFDF5] text-[#10B981] px-2.5 py-1 rounded-full uppercase tracking-wider">Active</span>
             </h2>
-            <p className="text-xs text-gray-500 font-medium mt-1 uppercase tracking-widest font-mono">
+            <p className="text-[13px] text-[#A1A1AA] font-semibold mt-0.5">
               Engineering ICP & Sales Vector
             </p>
           </div>
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 overflow-y-auto p-8 space-y-8 scroll-smooth">
+        <div className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar bg-[#F4F5F7]/40">
           {messages.map((msg) => (
             <div
               key={msg.id}
               className={`flex gap-4 animate-scale-in max-w-[85%] ${msg.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto"}`}
             >
               <div
-                className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${msg.role === "user"
-                  ? "bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-blue-900/20"
-                  : "bg-[#111] text-indigo-400 border border-indigo-500/20 shadow-indigo-900/10"
+                className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${msg.role === "user"
+                  ? "bg-[#1A1D20] text-white shadow-md"
+                  : "bg-white text-[#FF5C39] border border-[#FFD4CC] shadow-sm"
                   }`}
               >
                 {msg.role === "user" ? (
-                  <User className="w-4 h-4" />
+                  <User className="w-5 h-5 stroke-[2.5px]" />
                 ) : (
-                  <Bot className="w-4 h-4" />
+                  <Bot className="w-5 h-5 stroke-[2.5px]" />
                 )}
               </div>
 
               <div
-                className={`rounded-3xl px-6 py-4 text-[14px] leading-relaxed relative group ${msg.role === "user"
-                  ? "bg-gradient-to-br from-blue-600/10 to-indigo-600/10 text-white border border-blue-500/20 rounded-tr-sm"
-                  : "bg-white/[0.02] text-gray-300 border border-white/[0.05] rounded-tl-sm hover:border-white/10 transition-colors"
+                className={`rounded-[20px] px-6 py-4 text-[14px] leading-relaxed relative ${msg.role === "user"
+                  ? "bg-[#1A1D20] text-white rounded-tr-sm shadow-[0_4px_16px_rgba(26,29,32,0.1)]"
+                  : "bg-white text-[#171717] border border-[#F0F0F0] rounded-tl-sm shadow-[0_2px_12px_rgba(0,0,0,0.02)]"
                   }`}
               >
                 {msg.content}
-                <div className={`absolute top-4 ${msg.role === "user" ? "-right-2 w-2 h-2 bg-blue-500/20" : "-left-2 w-2 h-2 bg-white/5"} rotate-45`}></div>
               </div>
             </div>
           ))}
           {isLoading && (
             <div className="flex gap-4 animate-fade-in max-w-[85%] mr-auto">
-              <div className="w-10 h-10 rounded-2xl bg-[#111] text-indigo-400 border border-indigo-500/20 flex items-center justify-center shrink-0 relative overflow-hidden">
-                <div className="absolute inset-0 bg-indigo-500/20 animate-pulse"></div>
-                <Bot className="w-4 h-4 relative z-10" />
+              <div className="w-10 h-10 rounded-2xl bg-white text-[#FF5C39] border border-[#FFD4CC] flex items-center justify-center shrink-0 shadow-sm">
+                <Bot className="w-5 h-5 stroke-[2.5px]" />
               </div>
-              <div className="bg-white/[0.02] border border-white/[0.05] rounded-3xl rounded-tl-sm px-6 py-5 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-indigo-400/80 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                <div className="w-1.5 h-1.5 bg-indigo-400/80 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-                <div className="w-1.5 h-1.5 bg-indigo-400/80 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+              <div className="bg-white border border-[#F0F0F0] rounded-[20px] rounded-tl-sm px-6 py-5 flex items-center gap-2 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+                <div className="w-2 h-2 bg-[#FFD4CC] rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                <div className="w-2 h-2 bg-[#FFD4CC] rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                <div className="w-2 h-2 bg-[#FFD4CC] rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
               </div>
             </div>
           )}
@@ -157,28 +153,27 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         </div>
 
         {/* Input Area */}
-        <div className="p-6 bg-white/[0.01] border-t border-white/[0.05]">
-          <form onSubmit={handleSubmit} className="relative flex items-center max-w-4xl mx-auto group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-blue-500/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
+        <div className="p-6 bg-white border-t border-[#F0F0F0]">
+          <form onSubmit={handleSubmit} className="relative flex items-center mx-auto">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Transmit intelligence..."
               disabled={isLoading}
-              className="w-full bg-black/60 border border-white/10 rounded-2xl pl-6 pr-16 py-4 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-all duration-300 disabled:opacity-50 placeholder:text-gray-600 relative z-10"
+              className="w-full bg-[#F4F5F7] border border-transparent hover:border-[#E0E0E0] rounded-2xl pl-6 pr-16 py-[18px] text-[14px] text-[#171717] font-medium focus:outline-none focus:bg-white focus:border-[#FF5C39] transition-all duration-200 disabled:opacity-50 placeholder:text-[#A1A1AA] shadow-inner"
             />
             <button
               type="submit"
               disabled={!input.trim() || isLoading}
-              className="absolute right-2 p-3 bg-white border border-white/10 hover:bg-gray-200 text-black disabled:bg-white/5 disabled:border-white/5 disabled:text-gray-600 rounded-xl transition-all duration-300 z-20 flex items-center justify-center active:scale-95 shadow-lg"
+              className="absolute right-3 w-10 h-10 flex items-center justify-center bg-[#FF5C39] text-white hover:bg-[#E84B1A] disabled:bg-[#E9ECEF] disabled:text-[#A1A1AA] rounded-xl transition-all duration-200 shadow-[0_4px_12px_rgba(255,92,57,0.25)] disabled:shadow-none"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-[18px] h-[18px] ml-[-2px] mt-[1px]" />
             </button>
           </form>
-          <div className="text-center mt-3">
-            <p className="text-[10px] text-gray-600 font-mono uppercase tracking-widest flex items-center justify-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+          <div className="text-center mt-4">
+            <p className="text-[11px] text-[#A1A1AA] font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
               Secure Neural Link Active
             </p>
           </div>
@@ -187,4 +182,3 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     </div>
   );
 }
-
