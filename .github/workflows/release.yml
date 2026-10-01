@@ -1,0 +1,113 @@
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+          - platform: macos-13
+            target: x86_64-apple-darwin
+          - platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: ${{ matrix.target }}
+
+      - name: Install Linux dependencies
+        if: startsWith(matrix.platform, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev \
+            libnm-dev libcloudproviders-dev librsvg2-dev \
+            build-essential curl wget libssl-dev \
+            libayatana-appindicator3-dev libsoup-3.0-dev
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Lint & typecheck
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "OpenCloser ${{ github.ref_name }}"
+          releaseBody: |
+            ## OpenCloser ${{ github.ref_name }}
+
+            Your entire AI sales team — strategist, lead researcher, voice caller, coach, and manager — all running locally on your desktop.
+
+            ### What's New
+            - Complete demo mode — no API keys required to explore all features
+            - 10 realistic seed leads across all pipeline stages
+            - Industry-aware AI calling with context-adaptive demo scripts
+            - AI Sales Coach with objection training (3 difficulty levels)
+            - Real-time sentiment and emotion analysis in War Room
+            - Post-call AI debrief with auto-generated follow-up emails
+            - Built-in Twilio phone lines with mock mode + auto cloudflared tunnel
+            - Fully offline AI via Ollama (takes priority over cloud when configured)
+            - ESLint + rustfmt/clippy/knip/CI enforcement
+            - Lazy-loaded code splitting for fast startup
+
+            ### Downloads
+
+            | Platform | Package |
+            |----------|---------|
+            | macOS (Apple Silicon) | `.dmg` / `.app` |
+            | macOS (Intel) | `.dmg` / `.app` |
+            | Windows (x64) | `.msi` / `.exe` |
+            | Linux (x64) | `.deb` / `.AppImage` |
+
+            ### Quick Start
+            ```bash
+            # Download for your platform, install, and launch.
+            # No API key needed — demo mode works out of the box.
+            ```
+
+            ### Requirements
+            - **AI features**: Google Gemini API key (optional — full demo mode without one)
+            - **Voice calling**: Microphone + speakers (VoIP mode works without virtual cable)
+            - **Phone lines**: Twilio credentials optional — mock mode works out of the box (Settings → Phone); optional `cloudflared` binary for auto-tunneling
+            - **VoIP bridge** (optional): Virtual audio cable (VB-Cable for Windows, BlackHole for macOS)
+
+          releaseDraft: true
+          prerelease: false
+          args: --target ${{ matrix.target }}
