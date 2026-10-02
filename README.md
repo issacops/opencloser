@@ -16,7 +16,7 @@
 
 > **The open source AI sales development platform.** AI cold calling software, lead generation, sales automation, and a full AI SDR team — all running locally on your desktop. No SaaS fees. No cloud dependency. No data ever leaves your machine.
 
-[🚀 Quick Start](#-quick-start) · [📸 Screenshots](#-screenshots) · [✨ Features](#-your-ai-sales-team) · [🏗️ Architecture](#%EF%B8%8F-architecture) · [📦 Download](https://github.com/issacops/opencloser/releases) · [🤝 Contributing](#-contributing)
+[🎬 Watch the Launch Video](https://issacops.github.io/opencloser/opencloser-launch.mp4) · [🚀 Quick Start](#-quick-start) · [📸 Screenshots](#-screenshots) · [✨ Features](#-your-ai-sales-team) · [🏗️ Architecture](#%EF%B8%8F-architecture) · [📦 Download](https://github.com/issacops/opencloser/releases) · [🤝 Contributing](#-contributing)
 
 </div>
 
