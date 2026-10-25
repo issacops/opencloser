@@ -27,7 +27,7 @@ base64 = "0.22"
 dotenvy = "0.15.7"
 tauri-plugin-shell = "2.3.5"
 tokio = { version = "1", features = ["full"] }
-tokio-tungstenite = { version = "0.24", features = ["rustls-tls-native-roots"] }
+tokio-tungstenite = { version = "0.30", features = ["rustls-tls-native-roots"] }
 futures-util = "0.3"
 
 [profile.release]
